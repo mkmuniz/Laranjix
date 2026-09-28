@@ -10,7 +10,7 @@ import polars as pl
 
 from laranjix.calibration.loader import Calibration, normalise
 
-PARTNER_SCHEMA = {
+PARTNER_SCHEMA: dict[str, Any] = {
     "partner_account_id": pl.Utf8,
     "company_account_id": pl.Utf8,
     "since": pl.Date,

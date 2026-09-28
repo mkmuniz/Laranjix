@@ -1,13 +1,17 @@
 # Benchmark
 
-Ainda não implementado. Entra no Marco 7 (v0.4), depois que as tipologias e os
-níveis de dificuldade existirem.
+O benchmark esta implementado em [`src/laranjix/benchmark/`](../src/laranjix/benchmark/)
+e se roda pela CLI:
 
-O que o marco entrega, conforme a seção 7 do [ESCOPO.md](../ESCOPO.md):
+```bash
+laranjix benchmark --accounts 20000 --seed 11 --runs 5
+```
 
-- splits de treino, validação e teste **temporais** (o teste é o "futuro");
-- baselines de referência: regras simples, XGBoost com features de grafo e uma GNN simples;
-- métricas: precisão, recall, F1, PR-AUC e recall com taxa de falso positivo fixa.
+A metodologia esta em [docs/benchmark.md](../docs/benchmark.md) e os resultados atuais
+no [README](../README.md#o-dataset-funciona-a-evidencia).
 
-**Critério de qualidade:** se as regras simples acertam quase tudo no nível
-`hard`, o dataset está fácil demais e a tipologia precisa ser revista.
+## O que ainda falta (Marco 7)
+
+- GNN de referencia, alem do modelo tabular com features de grafo agregadas.
+- Comparacao direta com AMLworld, AMLSim, SAML-D e PaySim.
+- Publicacao dos datasets prontos no Hugging Face ou Kaggle.

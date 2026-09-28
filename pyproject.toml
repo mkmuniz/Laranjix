@@ -34,6 +34,7 @@ dependencies = [
     "pydantic>=2.6",
     "pyyaml>=6.0",
     "typer>=0.12",
+    "holidays>=0.50",
 ]
 
 [project.optional-dependencies]

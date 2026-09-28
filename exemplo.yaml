@@ -1,14 +1,21 @@
 # Configuracao de exemplo. Rode com:
-#   laranjix generate-population --config exemplo.yaml
+#   laranjix generate --config exemplo.yaml
 #
 # Mesma seed + mesma config = mesmo dataset, byte a byte.
 seed: 42
-difficulty: medium
+difficulty: hard          # easy, medium ou hard
 formats: [parquet, csv]
 output_dir: out
 
 population:
-  accounts: 50000
+  accounts: 20000
   reference_date: 2026-01-01
   max_keys_per_account: 5
-  # institutions: 12   # descomente para sobrescrever a calibracao
+
+fraud:
+  mule_chain_cases: 120          # T1: cadeias de contas laranja
+  social_engineering_cases: 90   # T2: golpes de engenharia social
+  chain_depth_min: 2
+  chain_depth_max: 6             # profundidade da cadeia; o MED 2.0 rastreia 5 camadas
+  victims_per_case_min: 4
+  victims_per_case_max: 28

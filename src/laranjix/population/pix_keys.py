@@ -13,7 +13,7 @@ from laranjix.config import PopulationConfig
 from laranjix.population.key_mix import solve_draw_weights
 from laranjix.privacy import identifiers as ident
 
-PIX_KEY_SCHEMA = {
+PIX_KEY_SCHEMA: dict[str, Any] = {
     "key_id": pl.Utf8,
     "account_id": pl.Utf8,
     "key_type": pl.Utf8,

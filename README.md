@@ -22,64 +22,123 @@ Os CPFs e CNPJs gerados têm dígitos verificadores **inválidos por construçã
 apenas domínios reservados pela RFC 2606 e os telefones usam um DDD que não existe. Isso é
 verificado automaticamente a cada commit — ver [docs/privacy.md](docs/privacy.md).
 
-## Certificado de qualidade
+## O dataset funciona? A evidência
 
-Todo dataset gerado pode emitir um **certificado verificável**. Ele não é um selo
-decorativo: cada linha é recalculada a partir dos arquivos do dataset, e qualquer pessoa
-reproduz o resultado com um comando.
+A pergunta que importa sobre um dataset sintético de fraude não é se ele parece
+realista. É se um modelo treinado nele **aprende alguma coisa** — e se o problema que
+ele propõe é difícil o bastante para valer a pena.
+
+Ambas as coisas são medidas, não afirmadas. Reproduza com:
 
 ```bash
-laranjix generate-population --accounts 50000 --seed 42 --out out/
-laranjix certify out/
+laranjix benchmark --accounts 20000 --seed 11 --runs 5
 ```
 
+**2,34 milhões de transações · 0,09% de fraude · split temporal · 5 treinos por modelo**
+
+| Dificuldade | Modelo | PR-AUC | Recall @ 1% FPR |
+|---|---|---:|---:|
+| **easy** | Regras simples | 0.2768 | 0.501 |
+| | Tabular (sem grafo) | 0.1061 ± 0.0249 | 0.580 ± 0.033 |
+| | **Tabular + grafo** | **0.4544 ± 0.1542** | **0.715 ± 0.116** |
+| **medium** | Regras simples | 0.0075 | 0.050 |
+| | Tabular (sem grafo) | 0.0277 ± 0.0056 | 0.288 ± 0.037 |
+| | **Tabular + grafo** | **0.3032 ± 0.0416** | **0.589 ± 0.089** |
+| **hard** | Regras simples | 0.0013 | 0.007 |
+| | Tabular (sem grafo) | 0.0199 ± 0.0028 | 0.268 ± 0.020 |
+| | **Tabular + grafo** | **0.2049 ± 0.0299** | **0.576 ± 0.036** |
+
+Três coisas saem dessa tabela.
+
+### 1. O nível `hard` é difícil de verdade
+
+Regras escritas à mão despencam de **PR-AUC 0.2768 para 0.0013** entre `easy` e `hard`.
+Com uma taxa base de 0,092%, isso é **1,4× o acaso** — na prática, inútil. O recall a
+1% de falso positivo cai de 50% para 0,7%.
+
+Esse é o critério de qualidade da seção 7.2 do [ESCOPO.md](ESCOPO.md): *se as regras
+simples acertam quase tudo no nível `hard`, o dataset está fácil demais.* Não é uma
+promessa no texto — é um [teste que quebra o build](tests/test_benchmark.py) se deixar
+de valer.
+
+### 2. A estrutura de grafo é onde está o sinal
+
+O mesmo modelo, com os mesmos dados, mudando só as features:
+
+| | Tabular | Tabular + grafo | Ganho |
+|---|---:|---:|---:|
+| easy | 0.1061 | 0.4544 | **4,3×** |
+| medium | 0.0277 | 0.3032 | **10,9×** |
+| hard | 0.0199 | 0.2049 | **10,3×** |
+
+As 10 features tabulares são o que qualquer modelo linha-a-linha vê: valor, hora, idade
+da conta. As 10 de grafo só existem porque a transação é uma **aresta numa rede**:
+quantos pagadores distintos caíram nesse recebedor na última hora, se esse par já
+transacionou antes, se o dinheiro entrou na conta do remetente minutos antes de sair.
+
+É a tese do projeto, medida: no `hard`, um modelo tabular fica em 22× a taxa base e o
+mesmo modelo com grafo chega a 223×.
+
+### 3. Os números vêm com incerteza, porque precisam
+
+Cada célula é a **média de 5 treinos** com sementes diferentes, com o desvio padrão ao
+lado. Isso não é enfeite: com ~2.000 fraudes no período de teste, uma única semente
+chegou a marcar PR-AUC 0.199 onde as vizinhas marcaram entre 0.47 e 0.63. Publicar
+execução única seria publicar ruído.
+
+### O que torna o `hard` difícil
+
+Quatro mecanismos, todos configuráveis:
+
+1. **Mulas com histórico.** 95% das contas laranja são contas comuns, com movimentação
+   normal anterior. "Conta nova" deixa de ser sinal.
+2. **Valores tirados do próprio histórico da vítima.** O valor da fraude é um valor que
+   aquela vítima poderia ter enviado de qualquer forma.
+3. **Falsos positivos plantados.** 220 contas legítimas fazem *pass-through* rápido —
+   lojista pagando fornecedor, síndico repassando condomínio. "Entrou e saiu em uma
+   hora" deixa de ser regra.
+4. **Rótulo com atraso.** Ver abaixo.
+
+### O rótulo não chega junto com a transação
+
+No mundo real a fraude só é rotulada quando a vítima contesta — pelo MED, em até
+**80 dias** (o prazo subiu de 30 para 80 em 1º de setembro de 2026). Um benchmark que
+entrega o rótulo no instante da transação treina um modelo que não pode existir.
+
+Por isso o gabarito tem uma coluna `label_available_at`, e o split temporal a respeita:
+no treino, uma fraude ainda não contestada até a data de corte entra como transação
+comum. No `hard`, foram **248 fraudes** treinadas como legítimas — exatamente a situação
+de um time real.
+
+Nenhum dos geradores de referência (AMLworld, AMLSim, SAML-D, PaySim) modela isso.
+
+### Verificação do dataset
+
+Além do benchmark, todo dataset gerado emite um relatório recalculável:
+
+```bash
+laranjix certify out/
+```
 ```
 Privacidade          nenhum documento valido e nenhum achado de PII
 Reprodutibilidade    a seed 42 reproduziu 8 arquivo(s) byte a byte
 Fidelidade           9 distribuicoes, pior caso 0.7x o ruido
-Utilidade (TSTR)     o dataset ainda nao tem rotulos de fraude; TSTR entra com o Marco 4
-certificado          out/certificate.md
 ```
 
-O certificado tem cinco seções, e sai também em JSON (`certificate.json`) para automação:
+Privacidade e reprodutibilidade são recalculadas do zero; a fidelidade compara cada
+distribuição gerada com o alvo da calibração, usando como limiar o desvio que o próprio
+tamanho da amostra produz. Esse teste já pagou por si: reprovou o mix de chaves Pix com
+**18,6× o ruído**, um defeito real do gerador, [documentado e corrigido](docs/quality.md).
 
-| Seção | O que é recalculado | Como se prova |
-|-------|---------------------|---------------|
-| **1. Privacidade** | Todo documento é revalidado pelo algoritmo oficial e todo arquivo é varrido | `0` documentos válidos, `0` achados de PII |
-| **2. Reprodutibilidade** | O dataset é regerado a partir do próprio `manifest.json` | SHA-256 de 8 de 8 arquivos idênticos |
-| **3. Fidelidade** | 9 distribuições comparadas com os alvos da calibração | Distância de variação total × ruído amostral |
-| **4. Utilidade (TSTR)** | Modelo treinado no sintético, avaliado em base real | Razão TSTR/TRTR — pendente até o Marco 4 |
-| **5. Limites** | O que o certificado **não** afirma | Declarado por escrito |
+Metodologia completa em [docs/quality.md](docs/quality.md) e [docs/benchmark.md](docs/benchmark.md).
 
-### A seção 3, em detalhe
+### O que ainda não está provado
 
-Comparar distribuições precisa de um limiar honesto: nenhuma amostra finita reproduz
-exatamente o alvo. O limiar de cada checagem é o desvio que **o próprio tamanho da
-amostra produz**, estimado por simulação no percentil 99,9. Uma checagem só falha quando
-o desvio é maior do que o acaso explica.
-
-| Distribuição | TVD | Limiar de ruído | × ruído | |
-|---|---:|---:|---:|---|
-| UF das contas | 0.00884 | 0.01250 | 0.7× | PASSOU |
-| Tipo de titular (PF/PJ/MEI) | 0.00150 | 0.00403 | 0.4× | PASSOU |
-| Tipo de chave Pix (PF) | 0.00238 | 0.00624 | 0.4× | PASSOU |
-| Chaves por conta | 0.00108 | 0.00765 | 0.1× | PASSOU |
-
-*(4 das 9 linhas; o certificado completo sai em `out/certificate.md`. A metodologia está em [docs/quality.md](docs/quality.md).)*
-
-Esse teste já pagou por si: ao rodar pela primeira vez, ele reprovou o mix de chaves Pix
-com **18,6× o ruído** — EVP saía com 42,7% contra um alvo de 31%. Era um defeito real do
-gerador, [documentado e corrigido](docs/quality.md#o-primeiro-defeito-que-o-certificado-pegou).
-
-### O que o certificado não afirma
-
-Ele compara o dataset com os **parâmetros de calibração**, não com a realidade. Um
-dataset pode passar em tudo e continuar irrealista se os parâmetros estiverem errados —
-e os parâmetros de hoje ainda são provisórios. O certificado nomeia quais são, toda vez.
-
-Medir realismo contra a realidade é o papel do **TSTR**: treinar no sintético e avaliar
-numa base real. A base real fica na máquina de quem a possui e **nunca entra no
-repositório** — só o número sai. Metodologia em [docs/quality.md](docs/quality.md).
+- **TSTR contra base real.** O harness existe e está testado, mas o número depende de
+  quem tem a base. A base real nunca entra no repositório; só a métrica sai.
+- **Realismo dos parâmetros.** A fidelidade mede o gerador contra sua calibração, não
+  contra o Brasil. Os parâmetros ainda são provisórios, e o relatório diz quais.
+- **Comparação direta com AMLworld e SAML-D.** Planejada para o Marco 7.
 
 ## Por que existe
 
@@ -102,10 +161,12 @@ Pré-alfa. O que já funciona hoje:
 |-------|---------|--------|
 | 0 | Repositório, licença, regras de contribuição, CI | ✅ |
 | 2 | População: contas PF/PJ/MEI, chaves Pix, sociedades | ✅ |
-| — | Certificado de qualidade verificável (`laranjix certify`) | ✅ |
+| 3 | Movimentação normal em Pix, com calendário brasileiro | ✅ |
+| 4 | Fraudes rotuladas T1 e T2, gabarito separado, benchmark | ✅ |
+| — | Verificação do dataset (`laranjix certify`) | ✅ |
 | 1 | Calibração com números derivados das fontes públicas | 🚧 parâmetros provisórios |
-| 3 | Movimentação normal (Pix, TED, boleto, débito) | ⬜ |
-| 4 | Primeiras fraudes rotuladas (T1, T2) → v0.1 | ⬜ |
+| 3 | TED, boleto e cartão de débito | ⬜ |
+| 5 | T3 (pulverização) e T5 (lavagem em ciclo) | ⬜ |
 
 O roadmap completo está em [ESCOPO.md](ESCOPO.md), seção 8.
 
@@ -128,25 +189,32 @@ pip install -e ".[dev]"
 Gerar uma população de 50 mil contas fictícias:
 
 ```bash
-laranjix generate-population --accounts 50000 --seed 42 --out out/
+laranjix generate --accounts 20000 --seed 11 --difficulty hard --out out/
 ```
 
 ```
-accounts              50,000 linhas
-pix_keys             105,595 linhas
-company_partners       7,141 linhas
-institutions              12 linhas
-manifest           out/manifest.json
+accounts                    20,000 linhas
+pix_keys                    42,034 linhas
+company_partners             2,737 linhas
+institutions                    12 linhas
+transactions             2,344,342 linhas
+labels_transactions      2,344,342 linhas
+labels_accounts              2,230 linhas
+cases                          210 linhas
+taxa de fraude            0.0917%  (dificuldade: hard)
+o gabarito fica em arquivos separados (labels_*, cases) para evitar vazamento de rotulo
 privacidade: nenhum achado.
 ```
 
 Outros comandos:
 
 ```bash
+laranjix benchmark            # treina os modelos de referência e mede o dataset
+laranjix certify out/         # recalcula privacidade, reprodutibilidade e fidelidade
 laranjix calibration          # fontes e estado de cada parâmetro
-laranjix certify out/         # emite o certificado de qualidade do dataset
 laranjix privacy-check out/   # varredura de PII em qualquer arquivo ou pasta
-laranjix generate-population --config exemplo.yaml
+laranjix generate-population  # só a população, sem transações
+laranjix generate --config exemplo.yaml
 ```
 
 Configuração por arquivo:
@@ -154,12 +222,16 @@ Configuração por arquivo:
 ```yaml
 # exemplo.yaml
 seed: 42
-difficulty: medium
+difficulty: hard
 formats: [parquet, csv]
 output_dir: out
 population:
-  accounts: 50000
+  accounts: 20000
   reference_date: 2026-01-01
+fraud:
+  mule_chain_cases: 120
+  social_engineering_cases: 90
+  chain_depth_max: 6
 ```
 
 ## Reprodutibilidade
@@ -175,12 +247,23 @@ acrescentar uma etapa nova não desloca os números sorteados pelas etapas exist
 
 Hoje o gerador produz quatro tabelas, em Parquet e CSV:
 
+**Dados** — o que um modelo pode ver:
+
 | Tabela | Conteúdo |
 |--------|----------|
 | `accounts` | Contas PF/PJ/MEI com documento fictício, UF, instituição, data de abertura, faixa de renda e perfil de uso |
 | `pix_keys` | Chaves Pix (`cpf`, `cnpj`, `email`, `phone`, `evp`) com data de cadastro |
 | `company_partners` | Arestas de sociedade entre PF e PJ — base da tipologia de empresas de fachada |
 | `institutions` | Instituições fictícias (`inst_01`…), nunca um banco ou ISPB real |
+| `transactions` | Pix com valor, horário, janela noturna e dispositivo |
+
+**Gabarito** — em arquivos separados, para não vazar rótulo no treino:
+
+| Tabela | Conteúdo |
+|--------|----------|
+| `labels_transactions` | `is_fraud`, tipologia, caso, papel e **`label_available_at`** |
+| `labels_accounts` | Quais contas participaram e em que papel |
+| `cases` | Um caso por linha: tipologia, dificuldade, profundidade, valor, fonte pública |
 
 O esquema completo, incluindo transações e gabarito, está em [ESCOPO.md](ESCOPO.md), seção 3.
 
