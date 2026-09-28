@@ -22,6 +22,65 @@ Os CPFs e CNPJs gerados têm dígitos verificadores **inválidos por construçã
 apenas domínios reservados pela RFC 2606 e os telefones usam um DDD que não existe. Isso é
 verificado automaticamente a cada commit — ver [docs/privacy.md](docs/privacy.md).
 
+## Certificado de qualidade
+
+Todo dataset gerado pode emitir um **certificado verificável**. Ele não é um selo
+decorativo: cada linha é recalculada a partir dos arquivos do dataset, e qualquer pessoa
+reproduz o resultado com um comando.
+
+```bash
+laranjix generate-population --accounts 50000 --seed 42 --out out/
+laranjix certify out/
+```
+
+```
+Privacidade          nenhum documento valido e nenhum achado de PII
+Reprodutibilidade    a seed 42 reproduziu 8 arquivo(s) byte a byte
+Fidelidade           9 distribuicoes, pior caso 0.7x o ruido
+Utilidade (TSTR)     o dataset ainda nao tem rotulos de fraude; TSTR entra com o Marco 4
+certificado          out/certificate.md
+```
+
+O certificado tem cinco seções, e sai também em JSON (`certificate.json`) para automação:
+
+| Seção | O que é recalculado | Como se prova |
+|-------|---------------------|---------------|
+| **1. Privacidade** | Todo documento é revalidado pelo algoritmo oficial e todo arquivo é varrido | `0` documentos válidos, `0` achados de PII |
+| **2. Reprodutibilidade** | O dataset é regerado a partir do próprio `manifest.json` | SHA-256 de 8 de 8 arquivos idênticos |
+| **3. Fidelidade** | 9 distribuições comparadas com os alvos da calibração | Distância de variação total × ruído amostral |
+| **4. Utilidade (TSTR)** | Modelo treinado no sintético, avaliado em base real | Razão TSTR/TRTR — pendente até o Marco 4 |
+| **5. Limites** | O que o certificado **não** afirma | Declarado por escrito |
+
+### A seção 3, em detalhe
+
+Comparar distribuições precisa de um limiar honesto: nenhuma amostra finita reproduz
+exatamente o alvo. O limiar de cada checagem é o desvio que **o próprio tamanho da
+amostra produz**, estimado por simulação no percentil 99,9. Uma checagem só falha quando
+o desvio é maior do que o acaso explica.
+
+| Distribuição | TVD | Limiar de ruído | × ruído | |
+|---|---:|---:|---:|---|
+| UF das contas | 0.00884 | 0.01250 | 0.7× | PASSOU |
+| Tipo de titular (PF/PJ/MEI) | 0.00150 | 0.00403 | 0.4× | PASSOU |
+| Tipo de chave Pix (PF) | 0.00238 | 0.00624 | 0.4× | PASSOU |
+| Chaves por conta | 0.00108 | 0.00765 | 0.1× | PASSOU |
+
+*(4 das 9 linhas; o certificado completo sai em `out/certificate.md`. A metodologia está em [docs/quality.md](docs/quality.md).)*
+
+Esse teste já pagou por si: ao rodar pela primeira vez, ele reprovou o mix de chaves Pix
+com **18,6× o ruído** — EVP saía com 42,7% contra um alvo de 31%. Era um defeito real do
+gerador, [documentado e corrigido](docs/quality.md#o-primeiro-defeito-que-o-certificado-pegou).
+
+### O que o certificado não afirma
+
+Ele compara o dataset com os **parâmetros de calibração**, não com a realidade. Um
+dataset pode passar em tudo e continuar irrealista se os parâmetros estiverem errados —
+e os parâmetros de hoje ainda são provisórios. O certificado nomeia quais são, toda vez.
+
+Medir realismo contra a realidade é o papel do **TSTR**: treinar no sintético e avaliar
+numa base real. A base real fica na máquina de quem a possui e **nunca entra no
+repositório** — só o número sai. Metodologia em [docs/quality.md](docs/quality.md).
+
 ## Por que existe
 
 Os geradores públicos de dados de fraude (IBM AMLworld, AMLSim, SAML-D, PaySim) não modelam o
@@ -43,6 +102,7 @@ Pré-alfa. O que já funciona hoje:
 |-------|---------|--------|
 | 0 | Repositório, licença, regras de contribuição, CI | ✅ |
 | 2 | População: contas PF/PJ/MEI, chaves Pix, sociedades | ✅ |
+| — | Certificado de qualidade verificável (`laranjix certify`) | ✅ |
 | 1 | Calibração com números derivados das fontes públicas | 🚧 parâmetros provisórios |
 | 3 | Movimentação normal (Pix, TED, boleto, débito) | ⬜ |
 | 4 | Primeiras fraudes rotuladas (T1, T2) → v0.1 | ⬜ |
@@ -84,6 +144,7 @@ Outros comandos:
 
 ```bash
 laranjix calibration          # fontes e estado de cada parâmetro
+laranjix certify out/         # emite o certificado de qualidade do dataset
 laranjix privacy-check out/   # varredura de PII em qualquer arquivo ou pasta
 laranjix generate-population --config exemplo.yaml
 ```

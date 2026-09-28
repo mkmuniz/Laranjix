@@ -10,6 +10,7 @@ import polars as pl
 
 from laranjix.calibration.loader import Calibration, normalise
 from laranjix.config import PopulationConfig
+from laranjix.population.key_mix import solve_draw_weights
 from laranjix.privacy import identifiers as ident
 
 PIX_KEY_SCHEMA = {
@@ -20,13 +21,25 @@ PIX_KEY_SCHEMA = {
     "registered_at": pl.Date,
 }
 
-# A Pix account can hold at most one key of each document/contact type.
+# A Pix account can hold at most one key of each document/contact type; only EVP
+# repeats. Because of that constraint the calibrated mix is not what may be drawn
+# from directly -- see laranjix.population.key_mix.
 _UNIQUE_TYPES = frozenset({"cpf", "cnpj", "email", "phone"})
 
 
 def _key_count_distribution(params: dict[str, float]) -> tuple[list[int], list[float]]:
     keys, probabilities = normalise({str(k): float(v) for k, v in params.items()})
     return [int(key) for key in keys], probabilities
+
+
+def _draw_weights(
+    mix: dict[str, Any], counts: tuple[tuple[int, float], ...]
+) -> tuple[list[str], list[float]]:
+    """Return the draw weights whose realized mix matches ``mix``."""
+    names, probabilities = normalise({str(k): float(v) for k, v in mix.items()})
+    target = tuple(sorted(zip(names, probabilities, strict=True)))
+    solved = solve_draw_weights(target, counts, _UNIQUE_TYPES)
+    return [name for name, _ in solved], [weight for _, weight in solved]
 
 
 def generate_pix_keys(
@@ -42,6 +55,9 @@ def generate_pix_keys(
     """
     params = calibration.data("pix_keys")
     counts, count_probabilities = _key_count_distribution(params["keys_per_account"])
+    count_pairs = tuple(zip(counts, count_probabilities, strict=True))
+    individual_weights = _draw_weights(params["key_type_mix_pf"], count_pairs)
+    company_weights = _draw_weights(params["key_type_mix_pj"], count_pairs)
     recent_fraction = float(params["registration"]["recent_fraction"])
     recent_window = int(params["registration"]["recent_window_days"])
 
@@ -51,8 +67,7 @@ def generate_pix_keys(
     columns = accounts.select("account_id", "holder_type", "holder_id", "holder_name", "created_at")
     for account_id, holder_type, holder_id, holder_name, created_at in columns.iter_rows():
         is_company = holder_type in {"PJ", "MEI"}
-        mix = params["key_type_mix_pj"] if is_company else params["key_type_mix_pf"]
-        types, type_probabilities = normalise({str(k): float(v) for k, v in mix.items()})
+        types, type_probabilities = company_weights if is_company else individual_weights
 
         wanted = min(
             int(rng.choice(counts, p=count_probabilities)),
@@ -60,9 +75,18 @@ def generate_pix_keys(
         )
         used_unique: set[str] = set()
         for _ in range(wanted):
-            key_type = str(rng.choice(types, p=type_probabilities))
-            if key_type in _UNIQUE_TYPES and key_type in used_unique:
-                key_type = "evp"
+            # Draw only among the types this account may still take, renormalised
+            # -- the scheme the draw weights were solved for.
+            allowed = [
+                index
+                for index, name in enumerate(types)
+                if not (name in _UNIQUE_TYPES and name in used_unique)
+            ]
+            weights = np.array([type_probabilities[index] for index in allowed])
+            total = weights.sum()
+            if total <= 0:
+                break
+            key_type = str(types[int(rng.choice(allowed, p=weights / total))])
             if key_type in _UNIQUE_TYPES:
                 used_unique.add(key_type)
 
