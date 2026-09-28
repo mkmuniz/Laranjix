@@ -19,7 +19,7 @@ jobs:
     name: Nenhum documento gerado e valido
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -32,7 +32,7 @@ jobs:
     name: Scanner de PII no repositorio
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -44,7 +44,7 @@ jobs:
     name: Scanner de PII nos dados gerados
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -58,7 +58,7 @@ jobs:
     name: Nenhum arquivo de dados brutos versionado
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Bloqueia dados brutos fora das pastas permitidas
         run: |
           offenders=$(git ls-files \
