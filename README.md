@@ -1,10 +1,21 @@
-# Laranjix
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/laranjix-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/laranjix-logo-light.svg">
+    <img src="docs/assets/laranjix-logo-light.svg" alt="Laranjix — synthetic fraud graphs for Brazil" width="420">
+  </picture>
+</p>
 
-> Gerador open source de datasets **sintéticos** de transações financeiras brasileiras, com fraudes plantadas e rotuladas, para treinar e avaliar modelos de detecção de fraude.
+<p align="center">
+  <em>Gerador open source de datasets <strong>sintéticos</strong> de transações financeiras brasileiras,<br>
+  com fraudes plantadas e rotuladas, para treinar e avaliar modelos de detecção de fraude.</em>
+</p>
 
-[![Licença](https://img.shields.io/badge/licen%C3%A7a-Apache--2.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-[![Status](https://img.shields.io/badge/status-pre--alpha-orange.svg)](CHANGELOG.md)
+<p align="center">
+  <a href="LICENSE"><img alt="Licença" src="https://img.shields.io/badge/licen%C3%A7a-Apache--2.0-blue.svg"></a>
+  <a href="pyproject.toml"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-blue.svg"></a>
+  <a href="CHANGELOG.md"><img alt="Status" src="https://img.shields.io/badge/status-pre--alpha-orange.svg"></a>
+</p>
 
 **Nenhum dado real de pessoas, empresas ou instituições é usado em qualquer etapa do projeto.**
 Os CPFs e CNPJs gerados têm dígitos verificadores **inválidos por construção**, os e-mails usam
@@ -126,7 +137,27 @@ Resultados obtidos em datasets do Laranjix **não demonstram desempenho em produ
 Leia [CONTRIBUTING.md](CONTRIBUTING.md). A regra número um: nenhum dado real, nunca — nem
 anonimizado, nem o seu próprio.
 
+## Identidade visual
+
+Os arquivos estão em [docs/assets/](docs/assets/):
+
+| Arquivo | Uso |
+|---------|-----|
+| `laranjix-logo-light.svg` | Logo horizontal para fundo claro (535×230) |
+| `laranjix-logo-dark.svg` | Logo horizontal para fundo escuro (535×230) |
+| `laranjix-icon.svg` | Só o símbolo (220×220): avatar, favicon, *social preview* |
+
+O símbolo é uma laranja cortada em que os gomos formam um grafo, com uma cadeia direcionada de
+quatro saltos destacada em marrom — a assinatura da tipologia T1, o caminho do dinheiro passando
+por contas laranja. O trocadilho é o ponto: "laranja" é como se chama no Brasil a conta usada
+para receber e repassar dinheiro de fraude.
+
+Paleta: `#E8620C` (casca), `#F7931E` (polpa), `#FFF4E3` (gomos), `#3B1D0E` (cadeia),
+`#2F7D3B` / `#4CAF5C` (folha, claro/escuro).
+
 ## Licença
 
 Código sob [Apache-2.0](LICENSE). Os parâmetros de calibração derivados de dados abertos do
 Banco Central estão sujeitos à ODbL; ver [NOTICE](NOTICE).
+
+A identidade visual em `docs/assets/` é distribuída sob a mesma licença do projeto.

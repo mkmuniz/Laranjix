@@ -12,7 +12,13 @@ import numpy as np
 import pytest
 
 from laranjix.privacy import identifiers as ident
-from laranjix.privacy.scan import FIXTURE_PRAGMA, is_fixture, scan_text, scan_tree
+from laranjix.privacy.scan import (
+    FIXTURE_PRAGMA,
+    is_fixture,
+    scan_path,
+    scan_text,
+    scan_tree,
+)
 from laranjix.privacy.validators import (
     cnpj_check_digits,
     cpf_check_digits,
@@ -143,7 +149,18 @@ def test_the_scanner_module_does_not_exclude_itself() -> None:
     assert not is_fixture(Path(scan_module.__file__))
 
 
+def test_the_marker_does_nothing_outside_a_test_directory(tmp_path: Path) -> None:
+    # CONTRIBUTING.md and docs/privacy.md quote the marker; they must still be scanned.
+    doc = tmp_path / "docs" / "privacy.md"
+    doc.parent.mkdir()
+    doc.write_text(f"Use `{FIXTURE_PRAGMA}` para excluir.\nalguem@gmail.com\n", encoding="utf-8")
+    assert not is_fixture(doc)
+    assert scan_text(doc.read_text(encoding="utf-8"), str(doc))
+
+
 def test_a_declared_fixture_is_skipped_and_reported(tmp_path: Path) -> None:
+    tmp_path = tmp_path / "tests"
+    tmp_path.mkdir()
     fixture = tmp_path / "fixture.py"
     fixture.write_text(f"# {FIXTURE_PRAGMA}\nalguem@gmail.com\n", encoding="utf-8")
     plain = tmp_path / "plain.py"
@@ -158,3 +175,22 @@ def test_a_declared_fixture_is_skipped_and_reported(tmp_path: Path) -> None:
 def test_ssh_remotes_are_not_treated_as_e_mail_addresses() -> None:
     assert scan_text("git clone git@github.com:owner/repo.git", "readme") == []
     assert scan_text("contato: alguem@github.com", "readme")
+
+
+def test_svg_geometry_is_ignored_but_metadata_is_not(tmp_path: Path) -> None:
+    # Path coordinates with many decimals form Luhn-valid digit runs by accident;
+    # an author field in the metadata is exactly what the scan must still catch.
+    geometry = '<path d="M213.0129548854828 150.0V78.30649703025819H228.66029181289673Z"/>'
+    clean = tmp_path / "logo.svg"
+    clean.write_text(f"<svg>{geometry}</svg>", encoding="utf-8")
+    assert scan_path(clean) == []
+
+    leaky = tmp_path / "leaky.svg"
+    leaky.write_text(f"<svg><desc>por alguem@gmail.com</desc>{geometry}</svg>", encoding="utf-8")
+    assert [finding.kind for finding in scan_path(leaky)] == ["non_reserved_email"]
+
+
+def test_the_project_logos_are_clean() -> None:
+    assets = Path(__file__).resolve().parents[1] / "docs" / "assets"
+    for logo in sorted(assets.glob("*.svg")):
+        assert scan_path(logo) == [], f"PII finding in {logo.name}"

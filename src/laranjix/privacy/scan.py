@@ -16,14 +16,26 @@ from laranjix.privacy.identifiers import FICTITIOUS_AREA_CODE, RESERVED_EMAIL_DO
 from laranjix.privacy.validators import is_valid_cnpj, is_valid_cpf, is_valid_luhn
 
 TEXT_SUFFIXES = frozenset(
-    {".csv", ".tsv", ".json", ".jsonl", ".yaml", ".yml", ".md", ".txt", ".py"}
+    {".csv", ".tsv", ".json", ".jsonl", ".yaml", ".yml", ".md", ".txt", ".py", ".svg"}
 )
 TABULAR_SUFFIXES = frozenset({".parquet"})
 
+# Vector geometry is never personal data, but coordinates with many decimals form
+# long digit runs that pass the Luhn checksum by accident. These attributes are
+# masked so an SVG is still scanned for what can actually carry PII: metadata,
+# titles, descriptions, author fields and text nodes.
+_SVG_GEOMETRY = re.compile(
+    r"\b(?:d|points|viewBox|transform|x|y|x1|y1|x2|y2|cx|cy|r|rx|ry|width|height"
+    r"|stroke-width|stroke-dasharray|offset|gradientTransform|patternTransform)"
+    r'\s*=\s*"[^"]*"'
+)
+
 # A file carrying this marker is skipped entirely. It exists so the scanner's own
-# tests can hold values that must trip it. Skipped files are always reported, so
-# the exclusion is never silent, and only files under tests/ should ever use it.
+# tests can hold values that must trip it. The marker only works inside a test
+# directory, so documentation can quote it without excluding itself, and skipped
+# files are always reported, so the exclusion is never silent.
 FIXTURE_PRAGMA = "laranjix-pii-fixture"
+FIXTURE_DIRS = frozenset({"tests", "test"})
 
 # A run preceded by "+" is an E.164 phone number, handled by _BR_PHONE below.
 _DIGIT_RUN = re.compile(r"(?<![\d+])(\d[\d.\-/ ]{9,24}\d)(?!\d)")
@@ -127,6 +139,10 @@ def is_fixture(path: Path) -> bool:
     if path.resolve() == Path(__file__).resolve():
         # This module defines the marker, so it would otherwise exclude itself.
         return False
+    if not FIXTURE_DIRS.intersection(path.resolve().parts):
+        # Outside a test directory the marker is just text -- in the docs that
+        # describe it, for instance.
+        return False
     try:
         head = path.read_text(encoding="utf-8", errors="replace")[:4096]
     except OSError:
@@ -150,7 +166,10 @@ def scan_path(path: Path) -> list[Finding]:
         )
         return scan_text(text, origin)
     if suffix in TEXT_SUFFIXES:
-        return scan_text(path.read_text(encoding="utf-8", errors="replace"), origin)
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if suffix == ".svg":
+            text = _SVG_GEOMETRY.sub(" ", text)
+        return scan_text(text, origin)
     return []
 
 

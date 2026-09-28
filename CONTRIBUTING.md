@@ -79,10 +79,11 @@ Todo PR passa por:
 | CodeQL e Dependabot | Vulnerabilidades no código e nas dependências |
 
 O scanner tem **um** mecanismo de exclusão: o marcador `laranjix-pii-fixture`
-dentro do arquivo, que só deve aparecer em arquivos de `tests/` cujo propósito é
-exercitar o próprio scanner. Arquivos ignorados são sempre listados na saída.
-Usar o marcador para silenciar um achado em código ou em dado gerado é tratado
-como incidente (ver `SECURITY.md`), não como atalho.
+dentro do arquivo, e ele só funciona dentro de `tests/` — fora dali é texto
+comum. Serve para os arquivos cujo propósito é exercitar o próprio scanner.
+Arquivos ignorados são sempre listados na saída. Usar o marcador para silenciar
+um achado em código ou em dado gerado é tratado como incidente (ver
+`SECURITY.md`), não como atalho.
 
 ## 6. Reprodutibilidade
 

@@ -68,6 +68,9 @@ tudo que **poderia** ser real:
 | `non_reserved_email` | E-mail em domínio fora da RFC 2606 |
 | `dialable_phone` | Telefone com DDD brasileiro válido |
 
+Arquivos varridos: `.csv`, `.tsv`, `.json`, `.jsonl`, `.yaml`, `.yml`, `.md`,
+`.txt`, `.py`, `.svg` e `.parquet` (lido como tabela).
+
 O scanner nunca imprime o valor completo de um achado: ele mostra apenas os dois
 primeiros e os dois últimos caracteres. Rodar manualmente:
 
@@ -94,6 +97,12 @@ reais durante o desenvolvimento. Todos estão travados por teste:
 4. **Remote SSH lido como e-mail.** `git@github.com:owner/repo.git` casa com o
    padrão de e-mail, mas é uma URL, não uma caixa postal. Um endereço seguido de
    `:` e um caminho é ignorado.
+5. **Geometria de SVG lida como cartão.** As coordenadas dos logos têm 13 casas
+   decimais e formam corridas de dígitos Luhn-válidas — 328 achados num arquivo
+   só. Os atributos geométricos (`d`, `points`, `cx`, `viewBox` etc.) são
+   mascarados, e o resto do SVG continua sendo varrido: é em `<desc>`, `<title>`
+   e na metadata que um arquivo de design costuma carregar nome e e-mail de quem
+   o exportou.
 
 Nenhuma dessas exceções enfraquece a detecção de dado real: um cartão ou telefone
 verdadeiro não tem a forma de um UUID, um documento real não vem com a pontuação
@@ -113,10 +122,14 @@ inteiro. A exclusão nunca é silenciosa: todo arquivo ignorado é listado na sa
 do `laranjix privacy-check`. O módulo que define o marcador não se exclui a si
 mesmo — isso é verificado por teste.
 
-Regras de uso: apenas arquivos dentro de `tests/`, e apenas quando o propósito do
-arquivo for exercitar o scanner. Usar o marcador para "silenciar" um achado em
-código ou em dado gerado é exatamente o tipo de mudança que o `SECURITY.md` trata
-como incidente.
+A restrição é **imposta pelo código**, não pela boa vontade: o marcador só tem
+efeito dentro de um diretório `tests/`. Em qualquer outro lugar ele é texto comum
+— inclusive nesta página, que cita o marcador e continua sendo varrida. Isso foi
+descoberto na prática: ao documentar o mecanismo, o `CONTRIBUTING.md` passou a se
+auto-excluir.
+
+Usar o marcador para "silenciar" um achado em código ou em dado gerado é
+exatamente o tipo de mudança que o `SECURITY.md` trata como incidente.
 
 ## Camada 4 — Governança de contribuições
 

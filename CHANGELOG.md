@@ -18,3 +18,14 @@ versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 - Geração da população: contas PF/PJ/MEI, chaves Pix e arestas de sociedade (Marco 2).
 - CLI `laranjix` com o comando `generate-population` e exportação em
   Parquet/CSV com `manifest.json` reprodutível.
+- Identidade visual em `docs/assets/`: logo horizontal em variantes clara e
+  escura e o símbolo isolado, usados no README.
+- O scanner de PII passa a varrer arquivos `.svg`, mascarando os atributos de
+  geometria para alcançar a metadata, que é onde um arquivo de design pode
+  carregar nome e e-mail de quem o exportou.
+
+### Corrigido
+
+- O marcador `laranjix-pii-fixture` só tem efeito dentro de `tests/`. Antes,
+  qualquer arquivo que citasse o marcador — como a própria documentação que o
+  descreve — se excluía da varredura.
