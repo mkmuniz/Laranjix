@@ -1,0 +1,31 @@
+# Parametros das chaves Pix.
+meta:
+  parameter_id: pix_keys
+  source: BCB - Portal de Dados Abertos, recurso ChavesPix (estoque por tipo)
+  source_url: https://dadosabertos.bcb.gov.br/dataset/chaves-pix
+  license: ODbL - exige atribuicao (ver NOTICE)
+  provisional: true
+  note: >-
+    Proporcoes provisorias. O Marco 1 deriva o estoque por tipo direto da API
+    OData do BCB e registra a data de referencia usada.
+key_type_mix_pf:
+  cpf: 0.24
+  phone: 0.27
+  email: 0.18
+  evp: 0.31
+key_type_mix_pj:
+  cnpj: 0.46
+  email: 0.22
+  phone: 0.12
+  evp: 0.20
+keys_per_account:
+  "1": 0.34
+  "2": 0.33
+  "3": 0.21
+  "4": 0.12
+registration:
+  note: >-
+    Chave recem-cadastrada e sinal relevante para fraude (ESCOPO.md, 3.1).
+    Fracao de chaves cadastradas nos ultimos 30 dias da janela de geracao.
+  recent_fraction: 0.06
+  recent_window_days: 30

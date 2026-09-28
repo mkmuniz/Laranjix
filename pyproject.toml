@@ -1,0 +1,92 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "laranjix"
+version = "0.0.1"
+description = "Gerador open source de datasets sinteticos de transacoes financeiras brasileiras, com fraudes plantadas e rotuladas."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Laranjix contributors" }]
+keywords = [
+    "synthetic-data",
+    "fraud-detection",
+    "anti-money-laundering",
+    "graph-neural-networks",
+    "pix",
+    "brazil",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Natural Language :: Portuguese (Brazilian)",
+]
+dependencies = [
+    "numpy>=1.26",
+    "polars>=1.0",
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "types-PyYAML>=6.0",
+]
+graph = ["networkx>=3.2"]
+
+[project.urls]
+Homepage = "https://github.com/mkmuniz/Laranjix"
+Repository = "https://github.com/mkmuniz/Laranjix"
+Issues = "https://github.com/mkmuniz/Laranjix/issues"
+Changelog = "https://github.com/mkmuniz/Laranjix/blob/main/CHANGELOG.md"
+
+[project.scripts]
+laranjix = "laranjix.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/laranjix"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/laranjix", "tests", "docs", "ESCOPO.md", "README.md", "LICENSE", "NOTICE"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF"]
+ignore = ["B008"]  # Typer declares defaults through function calls
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["A002"]
+
+[tool.mypy]
+# No python_version pin: mypy uses the running interpreter, so the numpy stubs
+# are read with the syntax they were written for.
+files = ["src"]
+strict = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["polars.*", "yaml.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-q --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["src"]

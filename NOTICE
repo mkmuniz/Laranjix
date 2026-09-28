@@ -1,0 +1,16 @@
+Laranjix
+Copyright 2026 Laranjix contributors
+
+Este produto inclui software desenvolvido pelo projeto Laranjix
+(https://github.com/mkmuniz/Laranjix), licenciado sob a Apache License 2.0.
+
+Parâmetros de calibração
+------------------------
+Os arquivos em `src/laranjix/calibration/params/` contêm valores agregados
+derivados de fontes públicas. Cada arquivo declara a fonte e a licença dos
+números que contém. Dados abertos do Banco Central do Brasil são publicados sob
+a Open Database License (ODbL) e exigem atribuição; a compatibilidade dessa
+licença com a Apache-2.0 para bases derivadas está em análise (ver ESCOPO.md,
+seção 6.5, e a questão aberta 2).
+
+Nenhum dado pessoal real é usado, incluído ou distribuído por este projeto.

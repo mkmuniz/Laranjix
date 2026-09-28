@@ -1,0 +1,73 @@
+name: Privacidade
+
+# As checagens da camada 3 do ESCOPO.md (secao 5.3). Um achado aqui e tratado
+# como incidente, nao como bug comum -- ver SECURITY.md.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  documents:
+    name: Nenhum documento gerado e valido
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Prova de invalidade de CPF e CNPJ
+        run: pytest tests/test_privacy.py -v
+
+  scan-repository:
+    name: Scanner de PII no repositorio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - run: laranjix privacy-check .
+
+  scan-generated:
+    name: Scanner de PII nos dados gerados
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Gera em escala e varre a saida
+        run: laranjix generate-population -n 50000 --seed 4001 -o out
+      - run: laranjix privacy-check out
+
+  raw-data-files:
+    name: Nenhum arquivo de dados brutos versionado
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bloqueia dados brutos fora das pastas permitidas
+        run: |
+          offenders=$(git ls-files \
+            | grep -E '\.(csv|tsv|parquet|xlsx|xls)$' \
+            | grep -vE '^(tests/fixtures/|src/laranjix/calibration/params/)' \
+            || true)
+          if [ -n "$offenders" ]; then
+            echo "Arquivos de dados brutos versionados fora das pastas permitidas:"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "Nenhum arquivo de dados brutos versionado."

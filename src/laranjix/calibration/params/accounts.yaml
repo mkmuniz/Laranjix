@@ -1,0 +1,64 @@
+# Parametros da populacao de contas.
+meta:
+  parameter_id: accounts
+  provisional: true
+  note: >-
+    Proporcoes provisorias, escolhidas para ordem de grandeza plausivel.
+    O Marco 1 substitui cada bloco por numeros agregados com fonte citada
+    (Estatisticas do Pix do BCB e Dados Abertos do CNPJ da Receita Federal,
+    sempre em nivel agregado).
+holder_type_mix:
+  source: Receita Federal - Dados Abertos do CNPJ (agregado) + BCB (agregado)
+  values:
+    PF: 0.88
+    MEI: 0.08
+    PJ: 0.04
+income_band:
+  source: IBGE - rendimento domiciliar por faixa de salario minimo
+  unit: salarios minimos
+  values:
+    ate_1: 0.30
+    de_1_a_2: 0.28
+    de_2_a_5: 0.26
+    de_5_a_10: 0.11
+    acima_de_10: 0.05
+revenue_band:
+  source: Receita Federal - distribuicao de empresas por porte (agregado)
+  unit: faturamento anual declarado
+  values:
+    mei: 0.42
+    micro: 0.34
+    pequena: 0.17
+    media: 0.05
+    grande: 0.02
+segment_mix:
+  pf:
+    assalariado: 0.46
+    autonomo: 0.22
+    beneficiario: 0.16
+    aposentado: 0.16
+  pj:
+    varejo: 0.38
+    servico: 0.40
+    atacado: 0.12
+    industria: 0.10
+institutions:
+  count: 12
+  note: >-
+    Instituicoes ficticias (inst_01..inst_NN). Nenhum nome de banco, codigo de
+    compensacao ou ISPB real entra no projeto.
+  share_concentration: 1.4
+account_age:
+  note: Idade da conta em dias na data de referencia; lognormal truncada.
+  lognormal_mean_log: 6.7
+  lognormal_sigma_log: 1.0
+  max_days: 7300
+company:
+  partners_per_company:
+    "1": 0.62
+    "2": 0.26
+    "3": 0.08
+    "4": 0.04
+  note: >-
+    MEI tem sempre um unico titular. Socios sao contas PF ja geradas, o que cria
+    as arestas de sociedade usadas pela tipologia T4.

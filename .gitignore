@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Datasets gerados — nunca versionados (ver CONTRIBUTING.md)
+out/
+datasets/
+*.parquet
+*.csv
+*.tsv
+*.xlsx
+!src/laranjix/calibration/params/*.csv
+!tests/fixtures/*.csv
+
+# Sistema
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,42 @@
+# Distribuicao da populacao brasileira por unidade federativa.
+#
+# Uso no Laranjix: sortear a UF das contas PF, de modo que a distribuicao
+# geografica do dataset se pareca com a do pais (ESCOPO.md, secao 6.2).
+meta:
+  parameter_id: population_uf
+  source: IBGE - Censo Demografico 2022, populacao residente por UF
+  source_url: https://censo2022.ibge.gov.br/
+  unit: pessoas
+  provisional: true
+  note: >-
+    Valores arredondados, transcritos manualmente para destravar o Marco 2.
+    O Marco 1 substitui este arquivo por numeros derivados diretamente da API
+    do IBGE, com o script de derivacao versionado ao lado.
+values:
+  SP: 44420459
+  MG: 20539989
+  RJ: 16055174
+  BA: 14141626
+  PR: 11444380
+  RS: 10882965
+  PE: 9058931
+  CE: 8794957
+  PA: 8120131
+  SC: 7610361
+  GO: 7056495
+  MA: 6775805
+  PB: 3974687
+  AM: 3941613
+  ES: 3833712
+  MT: 3658649
+  RN: 3302729
+  PI: 3271199
+  AL: 3127511
+  DF: 2817381
+  MS: 2757013
+  SE: 2209558
+  RO: 1581196
+  TO: 1511460
+  AC: 830018
+  AP: 733759
+  RR: 636707

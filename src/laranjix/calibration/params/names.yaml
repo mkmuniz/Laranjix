@@ -1,0 +1,88 @@
+# Vocabulario para nomes combinatorios.
+#
+# Um nome sorteado desta lista nao e dado pessoal: ele nunca vem acompanhado de
+# documento valido, endereco ou qualquer atributo real (ESCOPO.md, secao 5.2).
+meta:
+  parameter_id: names
+  source: prenomes e sobrenomes de uso comum no Brasil, escolhidos manualmente
+  provisional: false
+given_names:
+  - Ana
+  - Antonio
+  - Beatriz
+  - Bruno
+  - Camila
+  - Carlos
+  - Daniela
+  - Eduardo
+  - Fernanda
+  - Francisco
+  - Gabriel
+  - Helena
+  - Igor
+  - Isabela
+  - Joao
+  - Juliana
+  - Larissa
+  - Lucas
+  - Marcos
+  - Maria
+  - Mateus
+  - Natalia
+  - Paulo
+  - Rafael
+  - Renata
+  - Ricardo
+  - Sandra
+  - Thiago
+  - Vanessa
+  - Vitor
+surnames:
+  - Almeida
+  - Alves
+  - Araujo
+  - Barbosa
+  - Barros
+  - Cardoso
+  - Carvalho
+  - Costa
+  - Dias
+  - Duarte
+  - Ferreira
+  - Fernandes
+  - Gomes
+  - Lima
+  - Lopes
+  - Martins
+  - Melo
+  - Mendes
+  - Moraes
+  - Nunes
+  - Oliveira
+  - Pereira
+  - Pinto
+  - Ramos
+  - Ribeiro
+  - Rocha
+  - Rodrigues
+  - Santos
+  - Silva
+  - Souza
+  - Teixeira
+  - Vieira
+company_branches:
+  - Comercio
+  - Servicos
+  - Distribuidora
+  - Logistica
+  - Alimentos
+  - Construcoes
+  - Tecnologia
+  - Confeccoes
+  - Transportes
+  - Representacoes
+company_suffixes:
+  - LTDA
+  - ME
+  - EIRELI
+  - SA

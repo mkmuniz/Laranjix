@@ -1,0 +1,9 @@
+# Revisão obrigatória de mantenedor para todo o repositório.
+*                                   @mkmuniz
+
+# Áreas sensíveis: mudanças em privacidade e calibração exigem revisão
+# explícita de mantenedor (ESCOPO.md, seção 5.4).
+/src/laranjix/privacy/              @mkmuniz
+/src/laranjix/calibration/          @mkmuniz
+/docs/privacy.md                    @mkmuniz
+/.github/workflows/                 @mkmuniz
