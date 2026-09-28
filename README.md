@@ -137,24 +137,6 @@ Resultados obtidos em datasets do Laranjix **não demonstram desempenho em produ
 Leia [CONTRIBUTING.md](CONTRIBUTING.md). A regra número um: nenhum dado real, nunca — nem
 anonimizado, nem o seu próprio.
 
-## Identidade visual
-
-Os arquivos estão em [docs/assets/](docs/assets/):
-
-| Arquivo | Uso |
-|---------|-----|
-| `laranjix-logo-light.svg` | Logo horizontal para fundo claro (535×230) |
-| `laranjix-logo-dark.svg` | Logo horizontal para fundo escuro (535×230) |
-| `laranjix-icon.svg` | Só o símbolo (220×220): avatar, favicon, *social preview* |
-
-O símbolo é uma laranja cortada em que os gomos formam um grafo, com uma cadeia direcionada de
-quatro saltos destacada em marrom — a assinatura da tipologia T1, o caminho do dinheiro passando
-por contas laranja. O trocadilho é o ponto: "laranja" é como se chama no Brasil a conta usada
-para receber e repassar dinheiro de fraude.
-
-Paleta: `#E8620C` (casca), `#F7931E` (polpa), `#FFF4E3` (gomos), `#3B1D0E` (cadeia),
-`#2F7D3B` / `#4CAF5C` (folha, claro/escuro).
-
 ## Licença
 
 Código sob [Apache-2.0](LICENSE). Os parâmetros de calibração derivados de dados abertos do
