@@ -50,6 +50,19 @@ versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 - **`laranjix generate`**: gera o dataset completo, nao so a populacao.
 - Job de CI que roda o benchmark e publica a tabela no resumo da execucao.
 
+### Desempenho
+
+- Geração da população vetorizada: **11,9 mil → 105 mil contas/s (8,8×)**. Documentos,
+  nomes, telefones e chaves EVP passam a ser gerados em lote, com os dígitos
+  verificadores como produto de matrizes e a renderização de strings por buffer ASCII.
+- O sorteio de tipos de chave Pix, que é restrito por conta, deixou de iterar conta a
+  conta: a população inteira avança junta por posição de sorteio, com máscara de tipos
+  ainda disponíveis. O mix realizado não muda.
+- As buscas que cada tipologia faz por caso passaram a ser calculadas uma vez e
+  cacheadas. Eram 121 varreduras completas da tabela de transações e 1.469 filtros de
+  conta única por execução. **Dataset completo: 15,1 s → 5,1 s (3,0×).**
+- Teste de regressão que falha se o custo voltar a crescer de forma não linear.
+
 ### Corrigido
 
 - **Mix de chaves Pix não reproduzia a calibração.** Toda colisão de tipo único
