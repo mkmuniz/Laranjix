@@ -14,6 +14,8 @@ from laranjix.exporters import write_tables
 from laranjix.manifest import build_manifest, write_manifest
 from laranjix.population import generate_population
 from laranjix.privacy.scan import scan_tree
+from laranjix.validation.certificate import CERTIFICATE_JSON, CERTIFICATE_NAME, build_certificate
+from laranjix.validation.render import render_markdown
 
 app = typer.Typer(
     add_completion=False,
@@ -109,6 +111,52 @@ def privacy_check_command(
         typer.secho(f"FALHOU: {len(findings)} achado(s).", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
     typer.secho(f"OK: nenhum achado em {len(paths)} caminho(s).", fg=typer.colors.GREEN)
+
+
+@app.command("certify")
+def certify_command(
+    dataset_dir: Path = typer.Argument(
+        ..., exists=True, file_okay=False, help="Diretorio do dataset a certificar."
+    ),
+    write: bool = typer.Option(
+        True, "--write/--no-write", help="Escreve certificate.md e certificate.json no dataset."
+    ),
+    show: bool = typer.Option(False, "--show", help="Imprime o certificado inteiro."),
+) -> None:
+    """Emite o certificado de qualidade de um dataset ja gerado."""
+    import json
+
+    certificate = build_certificate(dataset_dir)
+    markdown = render_markdown(certificate)
+
+    if write:
+        (dataset_dir / CERTIFICATE_NAME).write_text(markdown, encoding="utf-8")
+        (dataset_dir / CERTIFICATE_JSON).write_text(
+            json.dumps(certificate.as_dict(), indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    if show:
+        typer.echo(markdown)
+    else:
+        for section in (certificate.privacy, certificate.reproducibility):
+            colour = typer.colors.GREEN if section.passed else typer.colors.RED
+            typer.secho(f"{section.name:<20} {section.detail}", fg=colour)
+        report = certificate.fidelity
+        worst = report.worst
+        colour = typer.colors.GREEN if report.passed else typer.colors.RED
+        detail = (
+            f"{len(report.checks)} distribuicoes, pior caso {worst.ratio:.1f}x o ruido"
+            if worst
+            else "nenhuma distribuicao verificada"
+        )
+        typer.secho(f"{'Fidelidade':<20} {detail}", fg=colour)
+        typer.secho(f"{'Utilidade (TSTR)':<20} {certificate.tstr.detail}", fg=typer.colors.YELLOW)
+        if write:
+            typer.echo(f"{'certificado':<20} {dataset_dir / CERTIFICATE_NAME}")
+
+    if not certificate.passed:
+        raise typer.Exit(code=1)
 
 
 @app.command("calibration")

@@ -23,9 +23,24 @@ versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 - O scanner de PII passa a varrer arquivos `.svg`, mascarando os atributos de
   geometria para alcançar a metadata, que é onde um arquivo de design pode
   carregar nome e e-mail de quem o exportou.
+- **Certificado de qualidade do dataset** (`laranjix certify`), em Markdown e
+  JSON, recalculado a partir dos arquivos do dataset: privacidade, reprodutibilidade,
+  fidelidade à calibração, utilidade (TSTR) e os limites declarados do que ele
+  não afirma.
+- Checagens de fidelidade por distância de variação total, com o limiar derivado
+  do ruído amostral do próprio tamanho da amostra em vez de uma constante
+  arbitrária.
+- Harness TSTR (*train-on-synthetic, test-on-real*) com `scikit-learn` no extra
+  `bench`. A base real de referência nunca entra no repositório: só a métrica sai.
+- Job de CI que emite o certificado a cada push e o publica como artefato.
 
 ### Corrigido
 
+- **Mix de chaves Pix não reproduzia a calibração.** Toda colisão de tipo único
+  virava EVP, que saía com 42,7% contra um alvo de 31% (PF) — 18,6 vezes o que o
+  ruído amostral explica. O gerador agora resolve analiticamente os pesos de
+  sorteio cujo resultado é o alvo. Isso **muda a saída de seeds existentes**;
+  como o projeto é pré-v0.1, nenhum dataset publicado é afetado.
 - O marcador `laranjix-pii-fixture` só tem efeito dentro de `tests/`. Antes,
   qualquer arquivo que citasse o marcador — como a própria documentação que o
   descreve — se excluía da varredura.

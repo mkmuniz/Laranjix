@@ -44,6 +44,29 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: pytest --cov=laranjix --cov-report=term-missing
 
+  certificate:
+    name: Certificado de qualidade
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[bench]"
+      - name: Gera o dataset e emite o certificado
+        run: |
+          laranjix generate-population -n 50000 --seed 42 -o out
+          laranjix certify out --show
+      - name: Publica o certificado como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: certificado-do-dataset
+          path: |
+            out/certificate.md
+            out/certificate.json
+            out/manifest.json
+
   reproducibility:
     name: Reprodutibilidade
     runs-on: ubuntu-latest
