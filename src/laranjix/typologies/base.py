@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from functools import cached_property
 from typing import Protocol
 
 import numpy as np
@@ -57,9 +58,14 @@ class InjectionResult:
     cases: list[Case] = field(default_factory=list)
 
 
-@dataclass(frozen=True)
+@dataclass
 class InjectionContext:
-    """Everything a typology needs to plant cases in an existing dataset."""
+    """Everything a typology needs to plant cases in an existing dataset.
+
+    The lookups below are built once and cached. A typology asks for them once
+    per case -- hundreds of times per run -- and each answer needs a pass over
+    the whole transaction table, which is millions of rows.
+    """
 
     rng: np.random.Generator
     accounts: pl.DataFrame
@@ -73,24 +79,35 @@ class InjectionContext:
     def account_index(self) -> dict[str, int]:
         return {account: index for index, account in enumerate(self.accounts["account_id"])}
 
+    @cached_property
+    def _active(self) -> pl.DataFrame:
+        senders = self.normal["src_account_id"].unique()
+        return self.accounts.filter(pl.col("account_id").is_in(senders))
+
     def active_accounts(self, holder_type: str | None = None) -> np.ndarray:
         """Accounts that already have ordinary outgoing activity.
 
         A mule with no history at all is a giveaway, so the harder difficulties
         recruit from here.
         """
-        active = self.normal["src_account_id"].unique()
-        frame = self.accounts.filter(pl.col("account_id").is_in(active))
+        frame = self._active
         if holder_type is not None:
             frame = frame.filter(pl.col("holder_type") == holder_type)
         return frame["account_id"].to_numpy()
 
+    @cached_property
+    def _typical_amounts(self) -> dict[str, float]:
+        """The 92nd percentile each account usually sends, in one pass."""
+        stats = (
+            self.normal.group_by("src_account_id")
+            .agg(pl.col("amount").quantile(0.92).alias("usual"), pl.len().alias("sent"))
+            .filter(pl.col("sent") >= 4)
+        )
+        return dict(zip(stats["src_account_id"], stats["usual"], strict=True))
+
     def typical_amount(self, account_id: str, fallback: float) -> float:
         """A plausible large-but-not-absurd amount for this account."""
-        history = self.normal.filter(pl.col("src_account_id") == account_id)["amount"]
-        if history.len() < 4:
-            return fallback
-        return float(history.quantile(0.92) or fallback)
+        return self._typical_amounts.get(account_id) or fallback
 
 
 class Typology(Protocol):
