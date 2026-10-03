@@ -71,7 +71,10 @@ def _draw_key_types(
 
         masked = np.where(allowed, weights, 0.0)
         totals = masked.sum(axis=1, keepdims=True)
-        cumulative = np.cumsum(np.divide(masked, totals, where=totals > 0), axis=1)
+        # out= matters: without it, rows where the divisor is zero would hold
+        # uninitialised memory rather than zeros.
+        shares = np.divide(masked, totals, out=np.zeros_like(masked), where=totals > 0)
+        cumulative = np.cumsum(shares, axis=1)
 
         draws = rng.random(accounts)[:, None]
         picked = (cumulative < draws).sum(axis=1).clip(max=len(type_names) - 1)

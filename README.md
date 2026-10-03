@@ -194,7 +194,7 @@ laranjix generate --accounts 20000 --seed 11 --difficulty hard --out out/
 
 ```
 accounts                    20,000 linhas
-pix_keys                    42,034 linhas
+pix_keys                    42,257 linhas
 company_partners             2,737 linhas
 institutions                    12 linhas
 transactions             2,344,342 linhas
