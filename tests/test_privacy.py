@@ -75,30 +75,36 @@ def test_check_digit_helpers_reject_wrong_length() -> None:
 
 
 def test_no_generated_cpf_is_valid(rng: np.random.Generator) -> None:
-    for _ in range(SAMPLE):
-        digits = ident.fake_cpf(rng)
-        assert len(digits) == 11
-        assert not is_valid_cpf(digits)
+    documents = ident.fake_cpf(rng, SAMPLE)
+    assert documents.size == SAMPLE
+    assert not any(is_valid_cpf(document) for document in documents)
 
 
 def test_no_generated_cnpj_is_valid(rng: np.random.Generator) -> None:
-    for _ in range(SAMPLE):
-        digits = ident.fake_cnpj(rng)
-        assert len(digits) == 14
-        assert not is_valid_cnpj(digits)
+    documents = ident.fake_cnpj(rng, SAMPLE)
+    assert documents.size == SAMPLE
+    assert not any(is_valid_cnpj(document) for document in documents)
 
 
 def test_generated_emails_use_reserved_domains_only(rng: np.random.Generator) -> None:
-    for index in range(500):
-        address = ident.fake_email(rng, "Maria Souza Lima", index)
+    names = ident.fake_name(rng, 500, ["Maria", "Joao"], ["Souza", "Lima", "Silva"])
+    for address in ident.fake_email(rng, names):
         assert address.rsplit("@", 1)[-1] in ident.RESERVED_EMAIL_DOMAINS
 
 
 def test_generated_phones_are_not_dialable(rng: np.random.Generator) -> None:
-    for _ in range(500):
-        phone = ident.fake_phone(rng)
-        assert phone.startswith(f"+55{ident.FICTITIOUS_AREA_CODE}")
-        assert not scan_text(phone, "phone")
+    phones = ident.fake_phone(rng, 500)
+    assert all(phone.startswith(f"+55{ident.FICTITIOUS_AREA_CODE}") for phone in phones)
+    assert scan_text("\n".join(phones), "phone") == []
+
+
+def test_generated_uuids_are_well_formed(rng: np.random.Generator) -> None:
+    import uuid
+
+    for key in ident.evp_key(rng, 2_000):
+        parsed = uuid.UUID(key)
+        assert str(parsed) == key
+        assert parsed.version == 4
 
 
 def test_institution_labels_are_fictitious() -> None:
@@ -124,12 +130,13 @@ def test_scanner_never_echoes_the_full_value() -> None:
 
 
 def test_scanner_accepts_synthetic_identifiers(rng: np.random.Generator) -> None:
+    names = ident.fake_name(rng, 4, ["Joao"], ["Silva", "Souza", "Lima"])
     values = [
-        ident.format_cpf(ident.fake_cpf(rng)),
-        ident.format_cnpj(ident.fake_cnpj(rng)),
-        ident.fake_email(rng, "Joao Silva", 3),
-        ident.fake_phone(rng),
-        ident.evp_key(rng),
+        *ident.fake_cpf(rng, 4),
+        *ident.fake_cnpj(rng, 4),
+        *ident.fake_email(rng, names),
+        *ident.fake_phone(rng, 4),
+        *ident.evp_key(rng, 4),
     ]
     assert scan_text(" ".join(values), "synthetic") == []
 
@@ -137,7 +144,7 @@ def test_scanner_accepts_synthetic_identifiers(rng: np.random.Generator) -> None
 def test_uuid_keys_do_not_trip_the_numeric_heuristics(rng: np.random.Generator) -> None:
     # A UUID's hex groups can spell out a Luhn-valid run or a phone-like pattern
     # by accident (found while generating 50k accounts). Both must be ignored.
-    keys = [ident.evp_key(rng) for _ in range(20_000)]
+    keys = ident.evp_key(rng, 20_000)
     assert scan_text("\n".join(keys), "evp") == []
     assert scan_text("5511456789012345-6789-4abc-8def-0123456789ab", "crafted") == []
 
