@@ -59,7 +59,7 @@ jobs:
           laranjix generate-population -n 50000 --seed 42 -o out
           laranjix certify out --show
       - name: Publica o certificado como artefato
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: certificado-do-dataset
           path: |
