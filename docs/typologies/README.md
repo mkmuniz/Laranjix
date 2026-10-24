@@ -6,6 +6,10 @@ Nenhuma página descreve como executar um golpe.
 
 Toda tipologia precisa citar a **fonte pública** que a fundamenta.
 
+> As assinaturas de T1 e T2 ainda não foram revisadas por quem trabalha com
+> prevenção à fraude. O pedido de revisão, e o formato em que a resposta entra
+> no repositório, estão em [revisao.md](revisao.md).
+
 | # | Tipologia | Assinatura no grafo | Estado |
 |---|-----------|---------------------|--------|
 | T1 | Cadeia de contas laranja (Pix) | Caminhos direcionados de 2 a 6+ saltos, intervalos curtos, saldo que não permanece nas contas intermediárias | ✅ [`t1_mule_chain.py`](../../src/laranjix/typologies/t1_mule_chain.py) |
