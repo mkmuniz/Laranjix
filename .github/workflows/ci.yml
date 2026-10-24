@@ -29,6 +29,10 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy
+      # Nao bloqueia o build: antes da 1.0 e esperado que haja parametro sem
+      # fundamento externo. Bloqueia a release, e aqui fica visivel no log.
+      - name: Proveniencia dos parametros de calibracao
+        run: laranjix calibration
 
   test:
     name: Testes (Python ${{ matrix.python-version }})
