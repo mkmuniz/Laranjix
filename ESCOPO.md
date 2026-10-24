@@ -371,11 +371,11 @@ Cada marco termina com algo concreto que dá para mostrar. As tarefas estão em 
 ### Marco 0 — Preparação
 *Resultado: o projeto existe publicamente e tem regras claras.*
 
-- [ ] Criar o repositório com o nome Laranjix e reservar o nome no PyPI.
-- [ ] Escrever uma página inicial (README) explicando o que é o projeto e para quem ele serve.
-- [ ] Escrever as regras de contribuição, deixando claro que é proibido enviar dados reais.
-- [ ] Escolher a licença e confirmar se ela combina com a licença dos dados do Banco Central.
-- [ ] Organizar as pastas do projeto conforme a seção 4.5.
+- [ ] Criar o repositório com o nome Laranjix e reservar o nome no PyPI. *(repositório criado; nome no PyPI ainda não reservado)*
+- [x] Escrever uma página inicial (README) explicando o que é o projeto e para quem ele serve.
+- [x] Escrever as regras de contribuição, deixando claro que é proibido enviar dados reais.
+- [ ] Escolher a licença e confirmar se ela combina com a licença dos dados do Banco Central. *(Apache-2.0 escolhida; compatibilidade com a ODbL ainda não confirmada — questão aberta 2)*
+- [x] Organizar as pastas do projeto conforme a seção 4.5.
 
 ### Marco 1 — Pesquisa e fontes
 *Resultado: os números e os padrões de fraude estão reunidos e documentados.*
@@ -389,30 +389,30 @@ Cada marco termina com algo concreto que dá para mostrar. As tarefas estão em 
 ### Marco 2 — Pessoas e contas fictícias
 *Resultado: o gerador cria uma população de clientes falsos, mas realistas.*
 
-- [ ] Criar pessoas e empresas fictícias com nomes gerados.
-- [ ] Criar CPFs e CNPJs que sejam impossíveis de pertencer a alguém real.
-- [ ] Distribuir essas pessoas pelos estados de forma parecida com a população brasileira.
-- [ ] Criar contas bancárias, com banco fictício e data de abertura.
-- [ ] Criar chaves Pix para essas contas (CPF, e-mail, telefone, aleatória).
-- [ ] Ligar sócios às suas empresas.
+- [x] Criar pessoas e empresas fictícias com nomes gerados.
+- [x] Criar CPFs e CNPJs que sejam impossíveis de pertencer a alguém real.
+- [x] Distribuir essas pessoas pelos estados de forma parecida com a população brasileira.
+- [x] Criar contas bancárias, com banco fictício e data de abertura.
+- [x] Criar chaves Pix para essas contas (CPF, e-mail, telefone, aleatória).
+- [x] Ligar sócios às suas empresas.
 
 ### Marco 3 — Movimentação normal
 *Resultado: as contas fictícias movimentam dinheiro como clientes comuns.*
 
-- [ ] Simular salários caindo no início do mês e contas sendo pagas.
-- [ ] Simular compras, transferências entre amigos e pagamentos de boleto.
-- [ ] Aplicar o calendário brasileiro: feriados, fins de semana, horários.
-- [ ] Respeitar o limite noturno do Pix.
-- [ ] Comparar o resultado com os números do Banco Central para ver se ficou parecido.
+- [ ] Simular salários caindo no início do mês e contas sendo pagas. *(o calendário já concentra movimento nos dias de pagamento; falta o fluxo explícito de salário)*
+- [ ] Simular compras, transferências entre amigos e pagamentos de boleto. *(Pix entre contrapartes recorrentes pronto; boleto só no Marco 6)*
+- [x] Aplicar o calendário brasileiro: feriados, fins de semana, horários.
+- [x] Respeitar o limite noturno do Pix.
+- [ ] Comparar o resultado com os números do Banco Central para ver se ficou parecido. *(hoje a comparação é com os parâmetros de calibração, não com o BCB — depende do Marco 1)*
 
 ### Marco 4 — Primeiras fraudes (v0.1)
 *Resultado: o gerador planta os dois golpes mais importantes e marca onde eles estão.*
 
-- [ ] Criar cadeias de contas laranja, com o dinheiro passando por várias contas em minutos (T1).
-- [ ] Criar golpes de engenharia social, com várias vítimas mandando dinheiro para a mesma conta (T2).
-- [ ] Gerar o gabarito: um arquivo separado dizendo quais transações são fraude e qual o papel de cada conta.
-- [ ] Salvar tudo em arquivos fáceis de abrir (CSV e Parquet).
-- [ ] Criar as verificações automáticas de privacidade (nenhum CPF válido, nenhum e-mail real).
+- [x] Criar cadeias de contas laranja, com o dinheiro passando por várias contas em minutos (T1).
+- [x] Criar golpes de engenharia social, com várias vítimas mandando dinheiro para a mesma conta (T2).
+- [x] Gerar o gabarito: um arquivo separado dizendo quais transações são fraude e qual o papel de cada conta.
+- [x] Salvar tudo em arquivos fáceis de abrir (CSV e Parquet).
+- [x] Criar as verificações automáticas de privacidade (nenhum CPF válido, nenhum e-mail real).
 - [ ] Publicar a versão 0.1.
 
 ### Marco 5 — Mais fraudes e níveis de dificuldade (v0.2)
@@ -461,7 +461,7 @@ Cada marco termina com algo concreto que dá para mostrar. As tarefas estão em 
 
 ## 10. Questões em aberto
 
-1. Formato exato dos telefones fictícios (garantir que não correspondam a numeração válida).
+1. ~~Formato exato dos telefones fictícios.~~ **Resolvida:** DDD `00`, que não existe no plano de numeração brasileiro, portanto inválido por estrutura e não por decisão administrativa que possa mudar. Ver `docs/privacy.md`.
 2. Compatibilidade ODbL × Apache-2.0 para os parâmetros de calibração.
 3. Onde hospedar os datasets de referência (Hugging Face, Kaggle ou ambos).
 4. Buscar validação das tipologias com profissionais de prevenção à fraude.
