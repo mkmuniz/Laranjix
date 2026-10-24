@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import Any
 
 import numpy as np
@@ -69,12 +68,11 @@ def generate_accounts(
     shares = _institution_shares(
         rng, institution_count, float(account_params["institutions"]["share_concentration"])
     )
-    institutions = rng.choice(
-        [ident.institution_id(i) for i in range(1, institution_count + 1)], size=size, p=shares
-    )
+    institution_names = np.array([ident.institution_id(i) for i in range(1, institution_count + 1)])
+    institutions = institution_names[rng.choice(institution_count, size=size, p=shares)]
 
     ages = _account_ages(rng, size, account_params["account_age"])
-    created_at = [config.reference_date - timedelta(days=int(age)) for age in ages]
+    created_at = np.datetime64(config.reference_date, "D") - ages.astype("timedelta64[D]")
 
     income_bands = _choose(rng, account_params["income_band"]["values"], size)
     revenue_bands = _choose(rng, account_params["revenue_band"]["values"], size)
@@ -86,32 +84,31 @@ def generate_accounts(
     branches = list(names["company_branches"])
     suffixes = list(names["company_suffixes"])
 
-    holder_ids: list[str] = []
-    holder_names: list[str] = []
-    bands: list[str] = []
-    segments: list[str] = []
-
-    for index in range(size):
-        holder_type = str(holder_types[index])
-        if holder_type in _COMPANY_TYPES:
-            holder_ids.append(ident.format_cnpj(ident.fake_cnpj(rng)))
-            holder_names.append(ident.fake_company_name(rng, surnames, branches, suffixes))
-            bands.append("mei" if holder_type == "MEI" else str(revenue_bands[index]))
-            segments.append(str(pj_segments[index]))
-        else:
-            holder_ids.append(ident.format_cpf(ident.fake_cpf(rng)))
-            holder_names.append(ident.fake_name(rng, given_names, surnames))
-            bands.append(str(income_bands[index]))
-            segments.append(str(pf_segments[index]))
+    # Both kinds are drawn for every row and selected by mask. The vectorised
+    # generators cost microseconds per thousand, so branching per row would cost
+    # more than the work it avoids.
+    is_company = np.isin(holder_types, list(_COMPANY_TYPES))
+    holder_ids = np.where(is_company, ident.fake_cnpj(rng, size), ident.fake_cpf(rng, size))
+    holder_names = np.where(
+        is_company,
+        ident.fake_company_name(rng, size, surnames, branches, suffixes),
+        ident.fake_name(rng, size, given_names, surnames),
+    )
+    bands = np.where(
+        is_company,
+        np.where(holder_types == "MEI", "mei", revenue_bands),
+        income_bands,
+    )
+    segments = np.where(is_company, pj_segments, pf_segments)
 
     return pl.DataFrame(
         {
-            "account_id": [ident.account_id(i) for i in range(1, size + 1)],
-            "holder_type": [str(value) for value in holder_types],
+            "account_id": ident.account_ids(size),
+            "holder_type": holder_types,
             "holder_id": holder_ids,
             "holder_name": holder_names,
-            "institution_id": [str(value) for value in institutions],
-            "uf": [str(value) for value in ufs],
+            "institution_id": institutions,
+            "uf": ufs,
             "created_at": created_at,
             "income_band": bands,
             "segment": segments,

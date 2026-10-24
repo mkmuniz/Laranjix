@@ -194,7 +194,7 @@ laranjix generate --accounts 20000 --seed 11 --difficulty hard --out out/
 
 ```
 accounts                    20,000 linhas
-pix_keys                    42,034 linhas
+pix_keys                    42,257 linhas
 company_partners             2,737 linhas
 institutions                    12 linhas
 transactions             2,344,342 linhas
@@ -233,6 +233,24 @@ fraud:
   social_engineering_cases: 90
   chain_depth_max: 6
 ```
+
+## Escala
+
+Medido num MacBook (Apple Silicon), geração de ponta a ponta:
+
+| Escala | Tempo | Pico de memória |
+|--------|------:|----------------:|
+| 200 mil contas (população) | 1,9 s | 0,6 GB |
+| 1 milhão de contas (população) | 9,5 s | 1,4 GB |
+| 20 mil contas → 2,3 M transações | 5,4 s | 1,4 GB |
+| 60 mil contas → 7,0 M transações | 17,6 s | 3,2 GB |
+
+Cerca de 105 mil contas/s e 400 mil transações/s, com custo **linear** no tamanho —
+há um [teste que falha](tests/test_performance.py) se isso deixar de valer.
+
+**O limite hoje é memória, não tempo.** O dataset inteiro é montado em memória antes de
+ser escrito, a cerca de 460 bytes por transação. Passar de ~20 M de transações exige
+geração em blocos com escrita por *row-group*, que ainda não existe.
 
 ## Reprodutibilidade
 
