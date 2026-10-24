@@ -253,13 +253,39 @@ def certify_command(
 
 
 @app.command("calibration")
-def calibration_command() -> None:
-    """Lista os parametros de calibracao, a fonte e o estado de cada um."""
+def calibration_command(
+    require_grounded: bool = typer.Option(
+        False,
+        "--require-grounded",
+        help="Falha se algum parametro ainda nao tiver fundamento externo. Gate de release.",
+    ),
+) -> None:
+    """Lista cada parametro de calibracao, sua proveniencia e o que falta nele."""
     calibration = load_calibration()
     for parameter_id, parameter_set in sorted(calibration.sets.items()):
-        state = "provisorio" if parameter_set.provisional else "consolidado"
-        typer.echo(f"{parameter_id:18} {state:12} {parameter_set.meta.get('source', '-')}")
-    typer.echo(f"fingerprint: {calibration.fingerprint()}")
+        provenance = parameter_set.provenance
+        colour = typer.colors.GREEN if parameter_set.grounded else typer.colors.YELLOW
+        typer.secho(f"{parameter_id:16} {provenance.value:18}", fg=colour, nl=False)
+        typer.echo(str(parameter_set.meta.get("source", "-"))[:60])
+        if not parameter_set.grounded:
+            action = parameter_set.meta.get("to_ground", "sem plano registrado")
+            typer.secho(f"{'':16} para fundamentar: {action}", fg=typer.colors.YELLOW)
+
+    typer.echo(f"\nfingerprint: {calibration.fingerprint()}")
+
+    ungrounded = calibration.provisional_ids()
+    if not ungrounded:
+        typer.secho("todos os parametros tem fundamento externo.", fg=typer.colors.GREEN)
+        return
+
+    message = (
+        f"{len(ungrounded)} de {len(calibration.sets)} parametros ainda definem o que e "
+        "'normal' sem nada fora do projeto para sustentar."
+    )
+    if require_grounded:
+        typer.secho(message, fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    typer.secho(message, fg=typer.colors.YELLOW)
 
 
 def main() -> None:  # pragma: no cover

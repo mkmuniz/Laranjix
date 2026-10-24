@@ -4,7 +4,11 @@ meta:
   source: BCB - Portal de Dados Abertos, recurso ChavesPix (estoque por tipo)
   source_url: https://dadosabertos.bcb.gov.br/dataset/chaves-pix
   license: ODbL - exige atribuicao (ver NOTICE)
-  provisional: true
+  provenance: unverified
+  to_ground: >-
+    Ler o estoque por tipo da API OData do BCB e registrar a data de referencia.
+  # A fonte existe, mas os numeros ainda nao foram lidos dela.
+  # Para virar public_statistic: derivar da API OData do BCB + retrieved_at.
   note: >-
     Proporcoes provisorias. O Marco 1 deriva o estoque por tipo direto da API
     OData do BCB e registra a data de referencia usada.

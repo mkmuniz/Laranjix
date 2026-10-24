@@ -5,7 +5,11 @@ meta:
     BCB - Estatisticas do Pix (volume e ticket medio, agregado) e Resolucao BCB
     142/2021 (limite noturno). Proporcoes de atividade por perfil sao
     provisorias.
-  provisional: true
+  provenance: unverified
+  to_ground: >-
+    Derivar volume e ticket medio das Estatisticas do Pix do BCB.
+  # As regras estruturais (limite noturno, janela noturna) vem de norma e
+  # estao citadas por bloco; os volumes e tickets ainda sao estimativa.
   note: >-
     O Marco 1 substitui os numeros de volume e ticket por valores derivados da
     API OData do BCB. As regras estruturais (limite noturno, janela noturna) vem

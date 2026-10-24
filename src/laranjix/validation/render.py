@@ -116,8 +116,11 @@ def render_markdown(certificate: Certificate) -> str:
     )
     if provisional:
         add(
-            f"- **Parametros ainda provisorios:** `{'`, `'.join(provisional)}`. "
-            "Sao valores de ordem de grandeza plausivel, nao derivados das fontes publicas."
+            f"- **Parametros sem fundamento externo:** `{'`, `'.join(provisional)}`. "
+            "Esses numeros definem o que o dataset considera 'normal', e foram escritos "
+            "por quem montou os arquivos -- nao derivados de fonte publica, nem revisados "
+            "por especialista. Um modelo treinado aqui aprende essa suposicao como se "
+            "fosse medicao. Rode `laranjix calibration` para ver o que falta em cada um."
         )
     add(
         "- **Nao afirma desempenho em producao.** Resultado obtido em dado sintetico nao "

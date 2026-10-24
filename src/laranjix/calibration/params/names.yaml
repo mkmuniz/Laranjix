@@ -5,7 +5,14 @@
 meta:
   parameter_id: names
   source: prenomes e sobrenomes de uso comum no Brasil, escolhidos manualmente
-  provisional: false
+  provenance: unverified
+  note: >-
+    Vocabulario autoral. Nao afeta o realismo estatistico do dataset: um nome
+    nunca vem acompanhado de documento valido nem de qualquer atributo real.
+  to_ground: >-
+    Submeter o vocabulario a revisao humana, ou derivar de uma lista publica de nomes.
+  # Vocabulario autoral. Nao afeta realismo estatistico: um nome nunca vem
+  # acompanhado de documento valido nem de qualquer atributo real.
 given_names:
   - Ana
   - Antonio
