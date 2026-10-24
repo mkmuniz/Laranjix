@@ -33,11 +33,24 @@ from laranjix.privacy.scan import scan_tree
 from laranjix.privacy.validators import is_valid_cnpj, is_valid_cpf
 from laranjix.validation.checks import population_fidelity
 from laranjix.validation.fidelity import FidelityReport
-from laranjix.validation.tstr import TstrResult, tstr_not_applicable
+from laranjix.validation.tstr import TstrResult, TstrStatus, tstr_not_applicable
 
 TABLES = ("accounts", "pix_keys", "company_partners", "institutions")
 CERTIFICATE_NAME = "certificate.md"
 CERTIFICATE_JSON = "certificate.json"
+
+
+def has_transactions(directory: Path) -> bool:
+    """Whether this is a full dataset rather than a bare population."""
+    return (directory / "transactions.parquet").exists()
+
+
+def fraud_label_count(directory: Path) -> int | None:
+    """Number of labelled frauds, or ``None`` when the dataset has no labels."""
+    path = directory / "labels_transactions.parquet"
+    if not path.exists():
+        return None
+    return int(pl.read_parquet(path, columns=["is_fraud"])["is_fraud"].sum())
 
 
 @dataclass(frozen=True)
@@ -140,7 +153,13 @@ def check_privacy(directory: Path, population: Population) -> SectionResult:
 def check_reproducibility(
     directory: Path, manifest: dict[str, Any], calibration: Calibration
 ) -> SectionResult:
-    """Regenerate the dataset from its own manifest and compare file hashes."""
+    """Regenerate the dataset from its own manifest and compare file hashes.
+
+    What gets regenerated has to match what was generated. A dataset with
+    transactions rebuilt as a bare population would report every fraud and label
+    file as a mismatch, which is a failure the dataset did not earn.
+    """
+    from laranjix.dataset import generate_dataset
     from laranjix.exporters import write_tables
     from laranjix.population import generate_population
 
@@ -157,10 +176,15 @@ def check_reproducibility(
     import tempfile
 
     recorded: dict[str, Any] = manifest.get("files", {})
+    full_dataset = has_transactions(directory)
     with tempfile.TemporaryDirectory() as temporary:
         target = Path(temporary)
-        population = generate_population(config, calibration)
-        write_tables(population.tables(), target, config.formats)
+        rebuilt_tables = (
+            generate_dataset(config, calibration).tables()
+            if full_dataset
+            else generate_population(config, calibration).tables()
+        )
+        write_tables(rebuilt_tables, target, config.formats)
 
         compared: dict[str, bool] = {}
         for name, entry in sorted(recorded.items()):
@@ -210,8 +234,26 @@ def build_certificate(
         privacy=check_privacy(directory, population),
         reproducibility=check_reproducibility(directory, manifest, params),
         fidelity=population_fidelity(population, params),
-        tstr=tstr
-        or tstr_not_applicable(
-            "o dataset ainda nao tem rotulos de fraude; TSTR entra com o Marco 4"
+        tstr=tstr or _tstr_status(directory),
+    )
+
+
+def _tstr_status(directory: Path) -> TstrResult:
+    """Say why TSTR has no number for this dataset.
+
+    Having fraud labels and having a real holdout to score against are separate
+    things, and the certificate should not report the first problem when the
+    dataset only has the second.
+    """
+    frauds = fraud_label_count(directory)
+    if frauds is None:
+        return tstr_not_applicable("o dataset nao tem gabarito; gere com `laranjix generate`")
+    if frauds == 0:
+        return tstr_not_applicable("o gabarito nao tem nenhuma fraude rotulada")
+    return TstrResult(
+        status=TstrStatus.MISSING_REFERENCE,
+        detail=(
+            f"{frauds:,} fraudes rotuladas, prontas para treino; falta a base real "
+            "de referencia, que fica com quem a possui (ver docs/quality.md)"
         ),
     )

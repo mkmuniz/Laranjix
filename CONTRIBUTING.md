@@ -48,7 +48,40 @@ laranjix privacy-check out/            # se você gerou dados localmente
 - Documentação do repositório, nomes de código e mensagens de commit em inglês.
   Documentos de escopo e páginas de tipologia em português.
 
-## 4. Contribuindo com uma nova tipologia de fraude
+## 4. Nada entra só porque um modelo disse
+
+Um gerador define, em números, o que conta como comportamento normal e o que
+conta como fraude. Se esses números vierem de um modelo de linguagem, ou da
+intuição de quem escreveu o arquivo, o dataset deixa de descrever o Brasil e
+passa a descrever uma suposição — e todo modelo treinado nele aprende a
+suposição como se fosse medição. Esse é um erro silencioso: nada quebra, os
+testes passam, e o benchmark continua bonito.
+
+Por isso **todo parâmetro de calibração declara sua proveniência**, e a
+declaração tem que sustentar o que afirma:
+
+| Proveniência | O que o arquivo precisa mostrar |
+|---|---|
+| `regulatory` | A norma que fixa o valor (ex.: Resolução BCB 142/2021) |
+| `public_statistic` | `source_url` e `retrieved_at` — qual fonte, lida quando |
+| `expert_review` | `reviewed_by` e `reviewed_at` — quem revisou, com que credencial |
+| `unverified` | `note` e `to_ground`: o que falta e qual é o passo concreto |
+
+O carregador **recusa** um arquivo que afirme mais do que mostra. Citar "BCB"
+sem dizer qual recurso e qual data falha igual a não citar nada.
+
+`unverified` é legítimo enquanto se constrói — um gerador não pode esperar toda
+fonte estar lida para rodar a primeira vez. Não é legítimo numa release:
+
+```bash
+laranjix calibration --require-grounded   # sai 1 se algo ainda for unverified
+```
+
+O mesmo vale para tipologias: uma assinatura de fraude precisa de fonte pública
+(seção 5) ou de revisão por profissional de prevenção à fraude, registrada em
+`reviewed_by`. "Parece plausível" não é proveniência.
+
+## 5. Contribuindo com uma nova tipologia de fraude
 
 Cada tipologia é um plugin em `src/laranjix/typologies/<nome>.py`. Um PR de
 tipologia só é aceito com:
@@ -65,7 +98,7 @@ tipologia só é aceito com:
 Não aceitamos contribuições que ajudem a **executar** fraudes: otimização contra
 detectores específicos, passo a passo operacional de golpes ou técnicas de evasão.
 
-## 5. O que o CI verifica
+## 6. O que o CI verifica
 
 Todo PR passa por:
 
@@ -85,13 +118,13 @@ Arquivos ignorados são sempre listados na saída. Usar o marcador para silencia
 um achado em código ou em dado gerado é tratado como incidente (ver
 `SECURITY.md`), não como atalho.
 
-## 6. Reprodutibilidade
+## 7. Reprodutibilidade
 
 Toda geração é determinística: mesma `seed` + mesma config = mesmo dataset. Se
 uma mudança sua altera a saída para uma seed existente, diga isso no PR e
 explique por quê. Mudanças que quebram reprodutibilidade entram só em releases
 com bump de versão menor.
 
-## 7. Código de conduta
+## 8. Código de conduta
 
 Ao participar, você concorda com o `CODE_OF_CONDUCT.md`.

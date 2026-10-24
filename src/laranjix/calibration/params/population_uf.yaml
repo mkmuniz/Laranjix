@@ -7,7 +7,11 @@ meta:
   source: IBGE - Censo Demografico 2022, populacao residente por UF
   source_url: https://censo2022.ibge.gov.br/
   unit: pessoas
-  provisional: true
+  provenance: unverified
+  to_ground: >-
+    Derivar da API do IBGE com script versionado, registrando retrieved_at.
+  # Numeros do Censo 2022 transcritos a mao, nao derivados da API do IBGE.
+  # Para virar public_statistic: script de derivacao + source_url + retrieved_at.
   note: >-
     Valores arredondados, transcritos manualmente para destravar o Marco 2.
     O Marco 1 substitui este arquivo por numeros derivados diretamente da API

@@ -1,7 +1,11 @@
 # Parametros da populacao de contas.
 meta:
   parameter_id: accounts
-  provisional: true
+  provenance: unverified
+  to_ground: >-
+    Derivar dos Dados Abertos do CNPJ (agregado) e do IBGE, com script versionado.
+  # Proporcoes escolhidas para ordem de grandeza plausivel, sem fonte externa.
+  # Para virar public_statistic: derivar de Dados Abertos do CNPJ e do IBGE.
   note: >-
     Proporcoes provisorias, escolhidas para ordem de grandeza plausivel.
     O Marco 1 substitui cada bloco por numeros agregados com fonte citada

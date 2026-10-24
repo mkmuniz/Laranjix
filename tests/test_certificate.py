@@ -69,10 +69,11 @@ def test_reproducibility_fails_on_a_tampered_manifest(dataset, tmp_path) -> None
     assert not certificate.passed
 
 
-def test_tstr_is_pending_until_fraud_labels_exist(dataset) -> None:
+def test_tstr_is_pending_when_the_dataset_has_no_ground_truth(dataset) -> None:
+    # A bare population carries no labels, so there is nothing to train on.
     certificate = build_certificate(dataset)
     assert certificate.tstr.status is TstrStatus.PENDING_LABELS
-    assert "Marco 4" in certificate.tstr.detail
+    assert "gabarito" in certificate.tstr.detail
 
 
 def test_markdown_states_the_result_and_the_limits(dataset) -> None:
@@ -146,3 +147,44 @@ def test_not_applicable_carries_its_reason() -> None:
     assert result.status is TstrStatus.PENDING_LABELS
     assert result.utility_ratio is None
     assert result.as_dict()["tstr_average_precision"] is None
+
+
+# -- full datasets ------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def full_dataset(tmp_path_factory):
+    target = tmp_path_factory.mktemp("full")
+    result = runner.invoke(
+        app, ["generate", "-n", "1200", "--seed", "21", "-d", "hard", "-o", str(target)]
+    )
+    assert result.exit_code == 0, result.stdout
+    return target
+
+
+def test_certificate_passes_on_a_dataset_with_transactions(full_dataset) -> None:
+    # The reproducibility section used to rebuild only the population, so every
+    # transaction and label file came back as a mismatch and a perfectly good
+    # dataset was reported as FAILED.
+    certificate = build_certificate(full_dataset)
+    assert certificate.reproducibility.passed, certificate.reproducibility.detail
+    assert certificate.passed
+
+
+def test_reproducibility_covers_the_transaction_and_label_files(full_dataset) -> None:
+    certificate = build_certificate(full_dataset)
+    evidence = certificate.reproducibility.evidence
+    assert evidence["files_matching"] == evidence["files_compared"]
+    # Four population tables plus transactions, labels and cases, in two formats.
+    assert evidence["files_compared"] >= 16
+
+
+def test_tstr_reports_the_missing_reference_not_missing_labels(full_dataset) -> None:
+    certificate = build_certificate(full_dataset)
+    assert certificate.tstr.status is TstrStatus.MISSING_REFERENCE
+    assert "fraudes rotuladas" in certificate.tstr.detail
+
+
+def test_certify_command_succeeds_on_a_full_dataset(full_dataset) -> None:
+    result = runner.invoke(app, ["certify", str(full_dataset), "--no-write"])
+    assert result.exit_code == 0, result.stdout

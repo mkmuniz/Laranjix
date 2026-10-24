@@ -10,6 +10,13 @@ from typing import Any
 
 import yaml
 
+from laranjix.calibration.provenance import (
+    GROUNDED,
+    Provenance,
+    missing_evidence,
+    parse,
+)
+
 PARAMS_DIR = Path(__file__).parent / "params"
 
 
@@ -27,8 +34,18 @@ class ParameterSet:
         return dict(self.data.get("meta", {}))
 
     @property
+    def provenance(self) -> Provenance:
+        return parse(self.meta.get("provenance"), self.parameter_id)
+
+    @property
+    def grounded(self) -> bool:
+        """Whether this parameter rests on something outside the project."""
+        return self.provenance in GROUNDED
+
+    @property
     def provisional(self) -> bool:
-        return bool(self.meta.get("provisional", False))
+        """Kept as the older name for "not yet grounded"."""
+        return not self.grounded
 
 
 @dataclass(frozen=True)
@@ -52,7 +69,23 @@ class Calibration:
         return digest.hexdigest()
 
     def provisional_ids(self) -> list[str]:
-        return sorted(pid for pid, pset in self.sets.items() if pset.provisional)
+        """Parameter ids not yet grounded in anything outside the project."""
+        return sorted(pid for pid, pset in self.sets.items() if not pset.grounded)
+
+    def require_grounded(self) -> None:
+        """Raise unless every parameter rests on a source, a norm or a reviewer.
+
+        The gate a release has to pass. Shipping a dataset whose idea of normal
+        was written by whoever set up the files, and never checked, is the
+        failure this whole module exists to prevent.
+        """
+        ungrounded = self.provisional_ids()
+        if ungrounded:
+            raise ValueError(
+                "parametros ainda sem fundamento externo: "
+                + ", ".join(ungrounded)
+                + ". Rode `laranjix calibration` para ver o que falta em cada um."
+            )
 
 
 def _load_file(path: Path) -> ParameterSet:
@@ -60,10 +93,16 @@ def _load_file(path: Path) -> ParameterSet:
     data = yaml.safe_load(raw.decode("utf-8")) or {}
     meta = data.get("meta") or {}
     parameter_id = str(meta.get("parameter_id") or path.stem)
-    if "source" not in meta and parameter_id != "accounts":
-        # Every parameter file must say where its numbers come from. The
-        # accounts file declares the source per block instead of globally.
-        raise ValueError(f"{path.name}: meta.source is required")
+
+    # A parameter file has to say where its numbers came from, and show whatever
+    # that claim requires. Without this, an unsourced guess is indistinguishable
+    # from a measurement once it is in the file.
+    provenance = parse(meta.get("provenance"), parameter_id)
+    missing = missing_evidence(provenance, meta)
+    if missing:
+        raise ValueError(
+            f"{path.name}: provenance '{provenance.value}' exige meta.{', meta.'.join(missing)}"
+        )
     return ParameterSet(
         parameter_id=parameter_id,
         path=path,
