@@ -9,7 +9,17 @@ entre saltos sao curtos, e o saldo nao permanece nas contas intermediarias --
 entra e sai. A profundidade configuravel existe para testar o limite de cinco
 camadas do rastreamento do MED 2.0.
 
-Fonte: Resolucao BCB no 493/2025 (MED 2.0) e Carta Circular BCB no 4.001/2020.
+Fonte: COAF, Casos & Casos (Tipologias, 2021), tipologia 2.33 "Aluguel de
+Contas Bancarias para recebimento de ilicitos", p. 83 -- "os titulares das
+contas bancarias sao utilizados como 'laranjas' para movimentar o produto do
+crime", com os sinais de alerta "movimentacao de recursos em beneficio de
+terceiros" e "recebimento de recursos com imediata realizacao de saques em
+especie". A profundidade da cadeia vem da Resolucao BCB no 493/2025 (MED 2.0).
+
+**O que a fonte nao sustenta:** a tipologia 2.33 descreve saque em especie, nao
+repasse encadeado entre contas. O encadeamento multi-salto e inferencia a partir
+do rastreamento em camadas do MED 2.0, e os intervalos entre saltos sao escolha
+do gerador. Ver ``sources.yaml`` nesta pasta e ``laranjix typologies``.
 """
 
 from __future__ import annotations

@@ -206,6 +206,28 @@ def benchmark_command(
         typer.echo(f"json escrito em {json_file}")
 
 
+@app.command("typologies")
+def typologies_command() -> None:
+    """Mostra em que fonte publica cada tipologia se apoia, e onde nao se apoia."""
+    from laranjix.typologies.sources import load_sources
+
+    for record in load_sources().values():
+        typer.secho(f"\n{record.code} — {record.name}", bold=True)
+        for citation in record.citations:
+            page = f" p.{citation.page}" if citation.page else ""
+            typer.secho(f"  fundamenta  {citation.source}{page}", fg=typer.colors.GREEN)
+            typer.echo(f"              {citation.supports.strip()}")
+        for gap in record.gaps:
+            typer.secho(f"  SEM FONTE   {gap.strip()}", fg=typer.colors.YELLOW)
+
+    typer.echo("")
+    typer.secho(
+        "O que esta sob SEM FONTE foi escolhido pelo gerador, nao lido numa "
+        "publicacao. Ver docs/typologies/revisao.md.",
+        fg=typer.colors.YELLOW,
+    )
+
+
 @app.command("certify")
 def certify_command(
     dataset_dir: Path = typer.Argument(

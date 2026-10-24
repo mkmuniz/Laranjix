@@ -1,0 +1,89 @@
+# Em que fonte publica cada tipologia se apoia, e -- tao importante quanto --
+# o que a fonte NAO sustenta.
+#
+# Uma tipologia inventada por quem escreveu o codigo nao descreve a fraude
+# brasileira: descreve uma suposicao. Este arquivo existe para que a diferenca
+# entre o que foi lido numa publicacao oficial e o que foi inferido fique
+# escrita, em vez de desaparecer dentro do gerador.
+meta:
+  record_id: typology_sources
+  provenance: public_statistic
+  source: >-
+    COAF - Casos & Casos: Coletanea de Tipologias de LD/FTP, edicao especial da
+    Avaliacao Nacional de Riscos (2021), 87 tipologias.
+  source_url: https://www.gov.br/coaf/pt-br/assuntos/o-sistema-de-prevencao-a-lavagem-de-dinheiro/avaliacao-nacional-de-riscos/2-2_casos-e-casos-tipologias-edicao-especial-anr.pdf
+  retrieved_at: 2026-10-24
+  retrieval_note: >-
+    O endereco do gov.br serve uma pagina HTML; o PDF foi lido do espelho em
+    legiscompliance.com.br/images/pdf/casos-casos-coaf-2021.pdf, 223 paginas.
+    As citacoes abaixo usam a numeracao impressa no documento.
+
+typologies:
+  T1:
+    name: Cadeia de contas laranja (Pix)
+    module: laranjix.typologies.t1_mule_chain
+    grounded_by:
+      - source: "COAF 2021, tipologia 2.33 - Aluguel de Contas Bancarias para recebimento de ilicitos"
+        page: 83
+        provenance: public_statistic
+        supports: Contas de terceiros usadas para receber e repassar produto de crime.
+        quote: >-
+          Os titulares das contas bancarias sao utilizados como "laranjas" para
+          movimentar o produto do crime.
+      - source: "COAF 2021, 2.33.2 - Sinais de Alerta de Inteligencia Financeira"
+        page: 83
+        provenance: public_statistic
+        supports: >-
+          A assinatura de pass-through: o dinheiro nao permanece na conta
+          intermediaria. E o sinal que a feature passthrough_ratio mede.
+        quote: >-
+          Movimentacao de recursos em beneficio de terceiros. Recebimento de
+          recursos com imediata realizacao de saques em especie.
+      - source: Resolucao BCB no 493/2025 (MED 2.0)
+        provenance: regulatory
+        supports: >-
+          Profundidade da cadeia. O rastreamento alcanca ate cinco camadas de
+          contas, o que define a faixa util de chain_depth.
+    not_supported_by_sources:
+      - >-
+        A cadeia Pix de varios saltos. A tipologia 2.33 descreve recebimento
+        seguido de SAQUE EM ESPECIE, nao de repasse encadeado entre contas. Que
+        existam cadeias e inferencia a partir do MED 2.0 -- o regulador construiu
+        rastreamento em cinco camadas porque ha camadas a rastrear -- mas nenhuma
+        das fontes lidas descreve o encadeamento em si.
+      - >-
+        O intervalo entre saltos (minutos a horas). Nao ha fonte publica lida
+        para esses numeros; sao escolha do gerador.
+
+  T2:
+    name: Golpes de engenharia social
+    module: laranjix.typologies.t2_social_engineering
+    grounded_by:
+      - source: "COAF 2021, tipologia 2.33 - Aluguel de Contas Bancarias"
+        page: 83
+        provenance: public_statistic
+        supports: >-
+          Os crimes de origem que T2 modela, e o mecanismo: a vitima e quem
+          executa a transferencia, induzida ou forcada.
+        quote: >-
+          os criminosos utilizam estas contas para receber recursos decorrentes
+          de crimes como, por exemplo, "falso sequestro", "sequestro relampago" e
+          estelionato, em que as pessoas sao forcadas ou induzidas a realizar
+          transferencias de valores ou depositos.
+      - source: "COAF 2021, tipologia 2.82 - Fraudes bancarias eletronicas (via internet)"
+        page: 196
+        provenance: public_statistic
+        supports: >-
+          Conta recebedora recem-aberta como facilitador, o que fundamenta a
+          idade da conta de destino como sinal.
+        quote: >-
+          a facilidade de abertura de contas bancarias nos chamados bancos
+          digitais que tem sido um facilitador para recepcionar recursos e
+          vantagens financeiras obtidas das fraudes cometidas pela internet.
+    not_supported_by_sources:
+      - >-
+        O fan-in concentrado: varias vitimas sem relacao entre si pagando a mesma
+        conta numa janela curta. As fontes lidas descrevem vitimas individuais,
+        nao a concentracao. A forma de fan-in e inferencia do gerador.
+      - >-
+        O numero de vitimas por caso e a largura da janela. Sem fonte publica.
