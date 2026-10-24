@@ -11,8 +11,16 @@ tempo, seguido de fan-out rapido. A ausencia de historico entre as partes e o
 sinal mais forte -- e por isso que a movimentacao normal precisa ter um circulo
 de contrapartes recorrentes, senao "par novo" nao distingue nada.
 
-Fonte: comunicados do BCB e das instituicoes sobre golpes do Pix; Carta Circular
-BCB no 4.001/2020.
+Fonte: COAF, Casos & Casos (Tipologias, 2021), tipologia 2.33, p. 83 -- os
+criminosos recebem "recursos decorrentes de crimes como, por exemplo, 'falso
+sequestro', 'sequestro relampago' e estelionato, em que as pessoas sao forcadas
+ou induzidas a realizar transferencias de valores ou depositos". A conta
+recebedora recem-aberta vem da tipologia 2.82, p. 196.
+
+**O que a fonte nao sustenta:** o fan-in concentrado. As fontes lidas descrevem
+vitimas individuais, nao varias pagando a mesma conta numa janela curta; essa
+forma e inferencia do gerador, como o numero de vitimas por caso. Ver
+``sources.yaml`` nesta pasta e ``laranjix typologies``.
 """
 
 from __future__ import annotations
