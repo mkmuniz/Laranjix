@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
 import numpy as np
 import polars as pl
@@ -11,7 +12,7 @@ from laranjix.calibration.loader import Calibration, normalise
 from laranjix.config import PopulationConfig
 from laranjix.privacy import identifiers as ident
 
-ACCOUNT_SCHEMA = {
+ACCOUNT_SCHEMA: dict[str, Any] = {
     "account_id": pl.Utf8,
     "holder_type": pl.Utf8,
     "holder_id": pl.Utf8,

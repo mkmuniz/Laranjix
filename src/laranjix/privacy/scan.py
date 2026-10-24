@@ -48,6 +48,11 @@ _CNPJ_FORMAT = re.compile(r"^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$")
 # number -- or even like a phone number -- by accident. UUIDs are masked out
 # before the numeric scans; a real card or phone number is never shaped like a
 # UUID, so nothing is lost. E-mail matching still runs on the raw text.
+# A hex digest (md5, sha1, sha256) is 32 characters or more and can contain a
+# long run of digits that passes Luhn by chance -- the dataset manifest is full
+# of them. A card number is at most 19 digits, so masking tokens this long
+# cannot hide one.
+_HEX_DIGEST = re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{32,}(?![0-9a-fA-F])")
 _UUID = re.compile(
     r"(?<![0-9a-fA-F-])[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}"
     r"-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?![0-9a-fA-F-])"
@@ -83,7 +88,7 @@ def _redact(value: str) -> str:
 def scan_text(text: str, origin: str) -> list[Finding]:
     """Return every finding in ``text``."""
     findings: list[Finding] = []
-    numeric_text = _UUID.sub(" ", text)
+    numeric_text = _HEX_DIGEST.sub(" ", _UUID.sub(" ", text))
 
     for match in _DIGIT_RUN.finditer(numeric_text):
         raw = match.group(1).strip()

@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1"
 
 permissions:
   contents: read
@@ -66,6 +68,30 @@ jobs:
             out/certificate.md
             out/certificate.json
             out/manifest.json
+
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    # Leva alguns minutos: roda no push para main, no agendamento e sob demanda,
+    # nao em todo pull request.
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[bench]"
+      - name: Treina os modelos de referencia e mede o dataset
+        run: laranjix benchmark -n 20000 --seed 11 --runs 3 -o benchmark.md --json benchmark.json
+      - name: Publica a tabela no resumo da execucao
+        run: cat benchmark.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark
+          path: |
+            benchmark.md
+            benchmark.json
 
   reproducibility:
     name: Reprodutibilidade

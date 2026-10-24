@@ -1,0 +1,69 @@
+# Parametros da movimentacao normal e da injecao de fraude.
+meta:
+  parameter_id: behavior
+  source: >-
+    BCB - Estatisticas do Pix (volume e ticket medio, agregado) e Resolucao BCB
+    142/2021 (limite noturno). Proporcoes de atividade por perfil sao
+    provisorias.
+  provisional: true
+  note: >-
+    O Marco 1 substitui os numeros de volume e ticket por valores derivados da
+    API OData do BCB. As regras estruturais (limite noturno, janela noturna) vem
+    de norma e nao sao provisorias.
+window:
+  days: 90
+  note: Janela de geracao, terminando em population.reference_date.
+night:
+  start_hour: 20
+  end_hour: 6
+  pf_limit_brl: 1000.0
+  source: Resolucao BCB 142/2021 - limite noturno entre pessoas fisicas.
+activity:
+  note: Transacoes enviadas por mes, por perfil de uso.
+  monthly_tx:
+    assalariado: 34
+    autonomo: 46
+    beneficiario: 22
+    aposentado: 18
+    varejo: 120
+    servico: 78
+    atacado: 64
+    industria: 40
+amount:
+  note: >-
+    Lognormal por perfil, em reais. Valores do Pix se concentram em numeros
+    redondos, o que e reproduzido pelo arredondamento probabilistico abaixo.
+  lognormal:
+    assalariado: {mean_log: 4.10, sigma_log: 1.15}
+    autonomo: {mean_log: 4.35, sigma_log: 1.25}
+    beneficiario: {mean_log: 3.70, sigma_log: 1.00}
+    aposentado: {mean_log: 3.85, sigma_log: 1.05}
+    varejo: {mean_log: 4.05, sigma_log: 1.30}
+    servico: {mean_log: 4.60, sigma_log: 1.35}
+    atacado: {mean_log: 5.40, sigma_log: 1.40}
+    industria: {mean_log: 5.60, sigma_log: 1.45}
+  round_number_fraction: 0.42
+  min_brl: 1.0
+  max_brl: 250000.0
+counterparties:
+  note: >-
+    Cada conta tem um circulo de contrapartes recorrentes. A primeira transacao
+    entre duas partes e sinal relevante de fraude, entao a fracao de transacoes
+    com contraparte nova precisa ser realista -- se for zero, qualquer par novo
+    vira fraude e o problema fica trivial.
+  regular_min: 3
+  regular_max: 18
+  new_counterparty_fraction: 0.17
+  preferential_attachment: 0.75
+hour_of_day:
+  note: Peso relativo por hora (0-23), fuso de Brasilia.
+  weights: [0.6, 0.4, 0.3, 0.2, 0.2, 0.3, 0.8, 1.6, 3.0, 4.6, 5.6, 6.0,
+            5.4, 4.8, 5.2, 5.6, 5.8, 5.4, 4.6, 3.6, 2.6, 1.8, 1.2, 0.8]
+day_of_week:
+  note: Segunda a domingo.
+  weights: [1.12, 1.08, 1.06, 1.06, 1.18, 0.78, 0.52]
+payday:
+  note: Salarios e beneficios caem no inicio do mes; movimento sobe nos dias seguintes.
+  days: [1, 2, 5, 6, 7]
+  multiplier: 1.9
+holiday_multiplier: 0.55

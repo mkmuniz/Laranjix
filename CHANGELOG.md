@@ -33,6 +33,22 @@ versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 - Harness TSTR (*train-on-synthetic, test-on-real*) com `scikit-learn` no extra
   `bench`. A base real de referência nunca entra no repositório: só a métrica sai.
 - Job de CI que emite o certificado a cada push e o publica como artefato.
+- **Movimentacao normal em Pix** (Marco 3): circulo de contrapartes recorrentes com
+  estrutura de hubs, calendario brasileiro com feriados e dias de pagamento, curva
+  horaria, concentracao em valores redondos e o limite noturno da Resolucao BCB
+  142/2021.
+- **Tipologias T1 (cadeia de contas laranja) e T2 (engenharia social)** (Marco 4),
+  como plugins, com gabarito em arquivos separados: `labels_transactions`,
+  `labels_accounts` e `cases`.
+- **`label_available_at`**: o rotulo de fraude so passa a existir quando a vitima
+  contesta, em ate 80 dias (MED). O split temporal respeita isso, entao fraudes ainda
+  nao contestadas na data de corte sao treinadas como transacoes comuns.
+- **Niveis de dificuldade** `easy`, `medium` e `hard`, com mulas que ja tem historico,
+  valores tirados do historico da vitima e falsos positivos legitimos plantados.
+- **Benchmark** (`laranjix benchmark`) com tres modelos de referencia e as metricas
+  PR-AUC e recall a 1% de falso positivo, com media e desvio sobre varios treinos.
+- **`laranjix generate`**: gera o dataset completo, nao so a populacao.
+- Job de CI que roda o benchmark e publica a tabela no resumo da execucao.
 
 ### Corrigido
 
@@ -41,6 +57,14 @@ versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
   ruído amostral explica. O gerador agora resolve analiticamente os pesos de
   sorteio cujo resultado é o alvo. Isso **muda a saída de seeds existentes**;
   como o projeto é pré-v0.1, nenhum dataset publicado é afetado.
+- **Falso positivo do scanner em hashes.** Um SHA-256 do `manifest.json` continha uma
+  corrida de digitos que passava no checksum de Luhn. Digests hexadecimais de 32 ou
+  mais caracteres sao mascarados antes da varredura numerica.
+- **Features de grafo com valores nulos.** O `rolling` do Polars colapsa linhas que
+  compartilham o mesmo instante dentro de um grupo, entao o join por `tx_id` deixava
+  buracos. Agora o casamento e por (conta, instante).
+- **Nivel `medium` indistinguivel do `easy`.** Com os valores iniciais, o modelo de
+  grafo marcava o mesmo nos dois, o que tornava o degrau do meio inutil.
 - O marcador `laranjix-pii-fixture` só tem efeito dentro de `tests/`. Antes,
   qualquer arquivo que citasse o marcador — como a própria documentação que o
   descreve — se excluía da varredura.

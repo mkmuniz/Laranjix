@@ -194,3 +194,11 @@ def test_the_project_logos_are_clean() -> None:
     assets = Path(__file__).resolve().parents[1] / "docs" / "assets"
     for logo in sorted(assets.glob("*.svg")):
         assert scan_path(logo) == [], f"PII finding in {logo.name}"
+
+
+def test_hex_digests_do_not_trip_the_card_heuristic() -> None:
+    # Found when the dataset manifest, which is full of SHA-256 hashes, failed
+    # its own privacy scan: one digest contained a Luhn-valid run of digits.
+    digest = "a1b2c3d4e5f6071829304152637485960718293041526374859607182930a1b2"
+    assert scan_text(digest, "manifest") == []
+    assert scan_text("4539578763621486", "card")  # a real card is still caught
