@@ -148,6 +148,32 @@ print(resultado.utility_ratio)
 
 Instale com `pip install 'laranjix[bench]'` (traz o scikit-learn).
 
+## O resultado do benchmark é parcialmente circular, e isso precisa ser dito
+
+A tabela do README mostra features de grafo batendo o modelo tabular por 10×. É
+um resultado real sobre *este* dataset, e é **fraco como evidência sobre o Brasil**,
+por um motivo estrutural:
+
+> As fraudes foram plantadas com forma de grafo — cadeias direcionadas e fan-in.
+> Features de grafo as encontram porque elas foram postas lá assim.
+
+Isso prova que o dataset é internamente coerente e que o nível `hard` resiste a
+regras simples. **Não prova** que a fraude brasileira real tenha essa topologia.
+
+O que quebraria a circularidade, em ordem de força:
+
+1. **TSTR contra base real.** Treinar aqui, avaliar lá. É a única medida que sai
+   do círculo, e depende de quem tem a base — ver a seção acima.
+2. **Revisão por profissionais de prevenção à fraude.** Que as assinaturas sejam
+   reconhecidas por quem as vê em produção. Registrado como `expert_review` na
+   proveniência da tipologia.
+3. **Calibração derivada das fontes**, substituindo os parâmetros `unverified`.
+
+Enquanto os três estiverem pendentes, o número correto a citar não é "o Laranjix
+treina modelos melhores". É: *"no Laranjix, no nível `hard`, regras simples caem
+a 1,4× o acaso e features de grafo multiplicam por 10 o modelo tabular."* A
+primeira frase é uma afirmação sobre o mundo; a segunda é o que foi medido.
+
 ## Resumo do que cada nível prova
 
 | Nível | Prova | Não prova |
@@ -155,5 +181,6 @@ Instale com `pip install 'laranjix[bench]'` (traz o scikit-learn).
 | Privacidade | Nenhum dado pode ser de alguém real | — |
 | Fidelidade | O gerador reproduz seus parâmetros | Que os parâmetros descrevem o Brasil |
 | Utilidade (TSTR) | Um modelo treinado aqui funciona lá | Desempenho em produção |
+| Proveniência | Que cada número declare sua origem | Que o número esteja certo |
 
 E nenhum dos três substitui revisão jurídica antes de uma release pública.
