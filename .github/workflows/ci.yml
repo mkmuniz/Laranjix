@@ -72,7 +72,7 @@ jobs:
           laranjix generate -n 20000 --seed 42 --difficulty hard -o out
           laranjix certify out --show
       - name: Publica o certificado como artefato
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: certificado-do-dataset
           path: |
@@ -97,7 +97,7 @@ jobs:
         run: laranjix benchmark -n 20000 --seed 11 --runs 3 -o benchmark.md --json benchmark.json
       - name: Publica a tabela no resumo da execucao
         run: cat benchmark.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: benchmark
           path: |
