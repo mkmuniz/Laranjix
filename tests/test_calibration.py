@@ -27,9 +27,16 @@ def test_fingerprint_is_stable_and_sensitive(calibration) -> None:
     assert len(calibration.fingerprint()) == 64
 
 
-def test_provisional_sets_are_reported(calibration) -> None:
-    # Milestone 1 replaces these with numbers derived from the public APIs.
-    assert "population_uf" in calibration.provisional_ids()
+def test_ungrounded_sets_are_reported(calibration) -> None:
+    # Milestone 1 retires these by deriving them from the public sources, the
+    # way population_uf already was. Whichever remain have to be listed.
+    ungrounded = set(calibration.provisional_ids())
+    assert ungrounded == {
+        parameter_id
+        for parameter_id, parameter_set in calibration.sets.items()
+        if not parameter_set.grounded
+    }
+    assert "population_uf" not in ungrounded, "population_uf vem do IBGE desde o Marco 1"
 
 
 def test_normalise_returns_a_probability_vector() -> None:
