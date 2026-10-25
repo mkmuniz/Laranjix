@@ -1,23 +1,26 @@
 # Distribuicao da populacao brasileira por unidade federativa.
 #
+# NAO EDITE A MAO. Este arquivo e gerado por:
+#   python -m laranjix.calibration.derive.population_uf
+#
 # Uso no Laranjix: sortear a UF das contas PF, de modo que a distribuicao
 # geografica do dataset se pareca com a do pais (ESCOPO.md, secao 6.2).
 meta:
   parameter_id: population_uf
+  provenance: public_statistic
   source: IBGE - Censo Demografico 2022, populacao residente por UF
-  source_url: https://censo2022.ibge.gov.br/
+  source_url: https://servicodados.ibge.gov.br/api/v3/agregados/4714/periodos/2022/variaveis/93?localidades=N3[all]
+  retrieved_at: 2026-10-25
   unit: pessoas
-  provenance: unverified
-  to_ground: >-
-    Derivar da API do IBGE com script versionado, registrando retrieved_at.
-  # Numeros do Censo 2022 transcritos a mao, nao derivados da API do IBGE.
-  # Para virar public_statistic: script de derivacao + source_url + retrieved_at.
-  note: >-
-    Valores arredondados, transcritos manualmente para destravar o Marco 2.
-    O Marco 1 substitui este arquivo por numeros derivados diretamente da API
-    do IBGE, com o script de derivacao versionado ao lado.
+  derivation: python -m laranjix.calibration.derive.population_uf
+  source_endpoints:
+    states: https://servicodados.ibge.gov.br/api/v1/localidades/estados
+    population: https://servicodados.ibge.gov.br/api/v3/agregados/4714/periodos/2022/variaveis/93?localidades=N3[all]
+  source_sha256:
+    states: 7ca1368dea3af83cba1af84ae8a7e88f1173c97586831d086cc8b3c1ba9c6596
+    population: 75bdf2ea2300370955a35d9c1477f8fe1e5b0597852c4ab0f3e236e27f7ae4be
 values:
-  SP: 44420459
+  SP: 44411238
   MG: 20539989
   RJ: 16055174
   BA: 14141626
@@ -28,17 +31,17 @@ values:
   PA: 8120131
   SC: 7610361
   GO: 7056495
-  MA: 6775805
+  MA: 6776699
   PB: 3974687
   AM: 3941613
   ES: 3833712
   MT: 3658649
   RN: 3302729
   PI: 3271199
-  AL: 3127511
+  AL: 3127683
   DF: 2817381
   MS: 2757013
-  SE: 2209558
+  SE: 2210004
   RO: 1581196
   TO: 1511460
   AC: 830018

@@ -48,7 +48,10 @@ def test_manifest_records_everything_needed_to_reproduce(tmp_path) -> None:
     assert manifest["synthetic"] is True
     assert manifest["row_counts"]["accounts"] == 120
     assert len(manifest["calibration"]["fingerprint"]) == 64
-    assert "population_uf" in manifest["calibration"]["provisional"]
+    # Still-ungrounded parameters travel with the dataset, so whoever uses it
+    # knows which of its assumptions rest on nothing external.
+    assert "accounts" in manifest["calibration"]["provisional"]
+    assert "population_uf" not in manifest["calibration"]["provisional"]
     assert manifest["files"]["accounts.parquet"]["bytes"] > 0
     assert len(manifest["files"]["accounts.parquet"]["sha256"]) == 64
 
