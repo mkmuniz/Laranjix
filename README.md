@@ -130,7 +130,9 @@ distribuição gerada com o alvo da calibração, usando como limiar o desvio qu
 tamanho da amostra produz. Esse teste já pagou por si: reprovou o mix de chaves Pix com
 **18,6× o ruído**, um defeito real do gerador, [documentado e corrigido](docs/quality.md).
 
-Metodologia completa em [docs/quality.md](docs/quality.md) e [docs/benchmark.md](docs/benchmark.md).
+Metodologia completa em [docs/quality.md](docs/quality.md) e [docs/benchmark.md](docs/benchmark.md). O roteiro para tirar o dataset de cima de
+suposições — e não virar um gerador que ensina à máquina o que seu autor achava —
+está em [docs/fundamentacao.md](docs/fundamentacao.md).
 
 ### O que ainda não está provado
 

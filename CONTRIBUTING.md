@@ -70,6 +70,9 @@ declaração tem que sustentar o que afirma:
 O carregador **recusa** um arquivo que afirme mais do que mostra. Citar "BCB"
 sem dizer qual recurso e qual data falha igual a não citar nada.
 
+O roteiro completo para retirar cada `unverified` está em
+[docs/fundamentacao.md](docs/fundamentacao.md).
+
 `unverified` é legítimo enquanto se constrói — um gerador não pode esperar toda
 fonte estar lida para rodar a primeira vez. Não é legítimo numa release:
 
